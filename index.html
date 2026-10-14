@@ -1142,14 +1142,21 @@
                         const parsed = JSON.parse(event.data);
                         if (parsed.path === '/' && parsed.data) {
                             applyState(parsed.data, true);
-                            saveCachedState(parsed.data);
+                            saveCachedState(state);
                             setConnectionStatus('connected');
                         } else if (parsed.path && parsed.path !== '/') {
                             // Fetch fresh full state
                             fetch(stateEndpoint).then(r => r.json()).then(d => {
-                                if (d) { applyState(d, true); saveCachedState(d); }
-                            });
+                                if (d) { applyState(d, true); saveCachedState(state); }
+                            }).catch(() => {});
                         }
+                    } catch(e) {}
+                });
+                cloudSSE.addEventListener('patch', event => {
+                    try {
+                        fetch(stateEndpoint).then(r => r.json()).then(d => {
+                            if (d) { applyState(d, true); saveCachedState(state); }
+                        }).catch(() => {});
                     } catch(e) {}
                 });
                 cloudSSE.onerror = () => {
@@ -1462,7 +1469,7 @@
 
         // Apply State
         function applyState(newState, fromCloud = false) {
-            state = newState;
+            state = Object.assign({}, state, newState);
             if (fromCloud) {
                 setConnectionStatus('connected');
             }
