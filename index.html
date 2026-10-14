@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FocusPulse</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FocusPulse">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23000000'/%3E%3Ccircle cx='256' cy='256' r='180' stroke='%23ff9f0a' stroke-width='24' fill='none'/%3E%3Crect x='244' y='140' width='24' height='120' rx='12' fill='%23ffffff'/%3E%3Ccircle cx='256' cy='256' r='16' fill='%23ff9f0a'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --black: #000000;
+            --surface: #1c1c1e;
+            --elevated: #2c2c2e;
+            --border: rgba(255, 255, 255, 0.08);
+            --orange: #ff9f0a;
+            --grey: #8e8e93;
+            --dark-grey: #3a3a3c;
+            --white: #ffffff;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            padding-top: max(env(safe-area-inset-top, 20px), 24px);
+            padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+            overflow-x: hidden;
+        }
+        
+        /* Top Header Bar */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px 8px;
+        }
+        .header-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--grey);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .header-title:active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .sync-badge {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #30d158;
+            box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sync-badge.standalone {
+            background-color: #ff9f0a;
+            box-shadow: 0 0 6px rgba(255, 159, 10, 0.4);
+        }
+        .sync-badge.disconnected {
+            background-color: #ff453a;
+            box-shadow: 0 0 6px rgba(255, 69, 58, 0.4);
+        }
+        .mac-label {
+            font-size: 11px;
+            color: var(--grey);
+            font-weight: 500;
+        }
+        .cloud-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--white);
+            border-radius: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Segmented Control */
+        .segmented-bar {
+            display: flex;
+            background-color: var(--surface);
+            border-radius: 9px;
+            padding: 2.5px;
+            margin: 6px 18px 14px;
+        }
+        .segmented-tab {
+            flex: 1;
+            padding: 6px 0;
+            text-align: center;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--grey);
+            border-radius: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .segmented-tab.active {
+            background-color: var(--elevated);
+            color: var(--white);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+        .live-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--orange);
+            display: none;
+        }
+        .live-dot.active {
+            display: inline-block;
+        }
+
+        /* Container View Panels */
+        .content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .view-panel {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 0 18px;
+        }
+        .view-panel.active {
+            display: flex;
+        }
+
+        /* 1. Timer Panel */
+        .timer-view-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 320px;
+        }
+
+        /* Ring Display Mode */
+        .ring-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .ring-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        .ring-track {
+            fill: none;
+            stroke: var(--surface);
+            stroke-width: 8;
+        }
+        .ring-progress {
+            fill: none;
+            stroke: var(--orange);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 722.566;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.05s linear;
+        }
+        .ring-center-content {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer-countdown {
+            font-size: 50px;
+            font-weight: 200;
+            letter-spacing: -1px;
+            font-variant-numeric: tabular-nums;
+            color: var(--white);
+        }
+        .bell-time {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--grey);
+            margin-top: 4px;
+        }
+
+        /* Apple Clock Style Wheel Picker Mode */
+        .picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .wheel-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            width: 100%;
+            max-width: 330px;
+            height: 210px;
+            margin-bottom: 24px;
+        }
+        .wheel-column-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            max-width: 95px;
+            height: 210px;
+        }
+        .wheel-column {
+            width: 100%;
+            height: 210px;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            position: relative;
+            z-index: 2;
+        }
+        .wheel-column::-webkit-scrollbar {
+            display: none;
+        }
+        .wheel-inner {
+            padding: 84px 0;
+        }
+        .wheel-item {
+            height: 42px;
+            line-height: 42px;
+            text-align: right;
+            padding-right: 38px;
+            font-size: 23px;
+            font-weight: 400;
+            font-variant-numeric: tabular-nums;
+            color: var(--grey);
+            scroll-snap-align: center;
+            transition: color 0.1s, font-weight 0.1s;
+        }
+        .wheel-item.selected {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 24px;
+        }
+        .wheel-unit-label {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--white);
+            pointer-events: none;
+            z-index: 3;
+        }
+        .wheel-selection-highlight {
+            position: absolute;
+            top: 84px;
+            left: 0;
+            right: 0;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Preset Chips */
+        .presets-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            width: 100%;
+            padding: 2px 4px 10px;
+            scrollbar-width: none;
+            justify-content: center;
+        }
+        .presets-row::-webkit-scrollbar {
+            display: none;
+        }
+        .preset-chip {
+            background-color: var(--surface);
+            color: var(--white);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .preset-chip.active {
+            background-color: var(--elevated);
+            border-color: var(--orange);
+            color: var(--orange);
+        }
+
+        /* Action Buttons Row */
+        .buttons-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 16px 20px;
+            margin-top: auto;
+        }
+        .circle-btn {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+        .circle-btn:active {
+            transform: scale(0.94);
+        }
+        .circle-btn.cancel {
+            background-color: var(--dark-grey);
+            color: var(--white);
+        }
+        .circle-btn.cancel:disabled {
+            opacity: 0.35;
+        }
+        .circle-btn.start {
+            background-color: rgba(255, 159, 10, 0.22);
+            color: var(--orange);
+        }
+        .circle-btn.pause {
+            background-color: rgba(255, 69, 58, 0.22);
+            color: #ff453a;
+        }
+
+        /* 2. Track Insights Panel */
+        .track-scope-bar {
+            display: flex;
+            background-color: var(--surface);
+            border-radius: 9px;
+            padding: 2.5px;
+            margin-bottom: 12px;
+        }
+        .track-scope-tab {
+            flex: 1;
+            padding: 5px 0;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--grey);
+            border-radius: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .track-scope-tab.active {
+            background-color: var(--elevated);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .track-hero-card {
+            background-color: var(--surface);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .track-hero-val {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--orange);
+            font-variant-numeric: tabular-nums;
+        }
+        .track-hero-sub {
+            font-size: 12px;
+            color: var(--grey);
+            margin-top: 2px;
+        }
+
+        /* 24-Hour Timeline Bar Chart Card */
+        .chart-card {
+            background-color: var(--surface);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .timeline-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .timeline-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--grey);
+            letter-spacing: 0.5px;
+        }
+        .timeline-legend {
+            font-size: 11px;
+            color: var(--grey);
+            font-variant-numeric: tabular-nums;
+        }
+        .timeline-bars-container {
+            display: flex;
+            align-items: flex-end;
+            height: 48px;
+            gap: 2px;
+            padding: 0 2px;
+        }
+        .timeline-bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .timeline-bar-track {
+            width: 100%;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+        .timeline-bar-track.current {
+            background: rgba(255, 159, 10, 0.12);
+        }
+        .timeline-bar-fill {
+            width: 100%;
+            background: var(--orange);
+            border-radius: 3px;
+            min-height: 0;
+            transition: height 0.3s ease;
+        }
+        .timeline-dot {
+            width: 2.5px;
+            height: 2.5px;
+            border-radius: 50%;
+            background: transparent;
+            margin-top: 3px;
+        }
+        .timeline-dot.current {
+            background: var(--orange);
+        }
+        .timeline-axis-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5px;
+            color: var(--grey);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Weekly & Monthly Charts */
+        .week-bars-container, .month-bars-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 78px;
+            padding: 0 8px;
+        }
+        .day-bar-col, .week-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .day-bar-val {
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+            color: var(--grey);
+            margin-bottom: 4px;
+        }
+        .day-bar-val.today {
+            color: var(--orange);
+            font-weight: 600;
+        }
+        .day-bar-track, .week-bar-track {
+            width: 18px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+        .day-bar-fill, .week-bar-fill {
+            width: 100%;
+            background: var(--orange);
+            border-radius: 5px;
+            min-height: 0;
+            transition: height 0.3s ease;
+        }
+        .day-bar-fill.today {
+            background: #ffb340;
+        }
+        .day-bar-label {
+            font-size: 11px;
+            color: var(--grey);
+            margin-top: 6px;
+        }
+        .day-bar-label.today {
+            color: var(--orange);
+            font-weight: 700;
+        }
+
+        /* Quick Log Buttons */
+        .quick-log-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .quick-log-chip {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 8px 0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .quick-log-chip:active {
+            background: var(--elevated);
+            color: var(--orange);
+        }
+
+        /* Track Sections */
+        .track-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 0 6px;
+            padding: 0 2px;
+        }
+        .track-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--grey);
+            letter-spacing: 0.5px;
+        }
+        .breakdown-list, .sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .breakdown-row {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+        }
+        .breakdown-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .breakdown-bar-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .breakdown-bar-fill {
+            height: 100%;
+            background: var(--orange);
+            border-radius: 2px;
+        }
+
+        .session-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+        }
+        .session-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .session-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--white);
+        }
+        .session-time {
+            font-size: 11px;
+            color: var(--grey);
+        }
+        .session-duration-pill {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--orange);
+            background: rgba(255, 159, 10, 0.12);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--grey);
+            font-size: 14px;
+            padding: 4px;
+            cursor: pointer;
+        }
+
+        /* 3. Tasks Panel */
+        .tasks-header {
+            margin-bottom: 12px;
+        }
+        .task-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--white);
+            font-size: 15px;
+            outline: none;
+        }
+        .task-input::placeholder {
+            color: var(--grey);
+        }
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+        .task-item {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+        }
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--grey);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .task-checkbox.completed {
+            background-color: var(--orange);
+            border-color: var(--orange);
+        }
+        .task-checkbox.completed::after {
+            content: "✓";
+            color: #000;
+            font-size: 12px;
+            font-weight: 900;
+        }
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--white);
+            flex: 1;
+        }
+        .task-title.completed {
+            text-decoration: line-through;
+            color: var(--grey);
+        }
+
+        /* 4. Notes Panel */
+        .notes-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .notes-input-title {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--white);
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+        }
+        .notes-textarea {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--white);
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            min-height: 240px;
+        }
+
+        /* Cloud Sync Modal Sheet */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-sheet {
+            background: #1c1c1e;
+            border-top: 1px solid var(--border);
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px 20px max(env(safe-area-inset-bottom, 20px), 24px);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--grey);
+            line-height: 1.4;
+        }
+        .cloud-input {
+            width: 100%;
+            background: #2c2c2e;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--white);
+            font-size: 13.5px;
+            outline: none;
+        }
+        .save-cloud-btn {
+            background: var(--orange);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 0;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title" onclick="openCloudModal()">
+            <span class="sync-badge" id="syncBadge"></span>
+            <span id="macLabel">Checking Cloud...</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="mac-label" id="timerDotHeader" style="display:none; color:var(--orange);">● Active</span>
+            <button class="cloud-btn" onclick="openCloudModal()" title="Cloud Settings">☁️</button>
+        </div>
+    </div>
+
+    <!-- Segmented Tab Bar -->
+    <div class="segmented-bar">
+        <button class="segmented-tab active" data-tab="timer" onclick="switchTab('timer')">
+            <span class="live-dot" id="timerDot"></span>
+            Timer
+        </button>
+        <button class="segmented-tab" data-tab="track" onclick="switchTab('track')">Track</button>
+        <button class="segmented-tab" data-tab="todos" onclick="switchTab('todos')">Tasks</button>
+        <button class="segmented-tab" data-tab="notes" onclick="switchTab('notes')">Notes</button>
+    </div>
+
+    <div class="content-container">
+        <!-- 1. Timer Panel -->
+        <div class="view-panel active" id="timerPanel">
+            <div class="timer-view-area">
+                <!-- Circular Countdown Ring -->
+                <div class="ring-container" id="ringView">
+                    <svg class="ring-svg" viewBox="0 0 250 250">
+                        <circle class="ring-track" cx="125" cy="125" r="115"></circle>
+                        <circle class="ring-progress" id="ringProgress" cx="125" cy="125" r="115"></circle>
+                    </svg>
+                    <div class="ring-center-content">
+                        <div class="timer-countdown" id="timerCountdown">15:00</div>
+                        <div class="bell-time" id="bellEndTime">🔔 --:--</div>
+                    </div>
+                </div>
+
+                <!-- Apple Clock Style Time Picker -->
+                <div class="picker-container" id="pickerView">
+                    <div class="wheel-group">
+                        <div class="wheel-selection-highlight"></div>
+                        <div class="wheel-column-wrapper">
+                            <div class="wheel-column" id="colHours" onscroll="handleWheelScroll('hours')">
+                                <div class="wheel-inner" id="innerHours"></div>
+                            </div>
+                            <span class="wheel-unit-label">hours</span>
+                        </div>
+                        <div class="wheel-column-wrapper">
+                            <div class="wheel-column" id="colMins" onscroll="handleWheelScroll('mins')">
+                                <div class="wheel-inner" id="innerMins"></div>
+                            </div>
+                            <span class="wheel-unit-label">min</span>
+                        </div>
+                        <div class="wheel-column-wrapper">
+                            <div class="wheel-column" id="colSecs" onscroll="handleWheelScroll('secs')">
+                                <div class="wheel-inner" id="innerSecs"></div>
+                            </div>
+                            <span class="wheel-unit-label">sec</span>
+                        </div>
+                    </div>
+
+                    <div class="presets-row">
+                        <button class="preset-chip" data-sec="300" onclick="setPreset(300)">5m</button>
+                        <button class="preset-chip" data-sec="600" onclick="setPreset(600)">10m</button>
+                        <button class="preset-chip" data-sec="900" onclick="setPreset(900)">15m</button>
+                        <button class="preset-chip" data-sec="1500" onclick="setPreset(1500)">25m</button>
+                        <button class="preset-chip" data-sec="2700" onclick="setPreset(2700)">45m</button>
+                        <button class="preset-chip" data-sec="3600" onclick="setPreset(3600)">60m</button>
+                    </div>
+                </div>
+
+                <div class="buttons-row">
+                    <button class="circle-btn cancel" id="cancelTimerBtn" onclick="cancelTimer()" disabled>Cancel</button>
+                    <button class="circle-btn start" id="startTimerBtn" onclick="toggleTimer()">Start</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Track Insights Panel -->
+        <div class="view-panel" id="trackPanel">
+            <div class="track-scope-bar">
+                <button class="track-scope-tab active" data-scope="day" onclick="setTrackScope('day')">Day</button>
+                <button class="track-scope-tab" data-scope="week" onclick="setTrackScope('week')">Week</button>
+                <button class="track-scope-tab" data-scope="month" onclick="setTrackScope('month')">Month</button>
+            </div>
+
+            <div class="track-hero-card">
+                <div class="track-hero-val" id="trackHeroVal">0.0h</div>
+                <div class="track-hero-sub" id="trackHeroSub">0 focus sessions today</div>
+            </div>
+
+            <!-- Visual Chart Card -->
+            <div class="chart-card" id="trackChartCard"></div>
+
+            <!-- Quick Log Row -->
+            <div class="quick-log-row">
+                <button class="quick-log-chip" onclick="quickLogWork(15)">+15m</button>
+                <button class="quick-log-chip" onclick="quickLogWork(30)">+30m</button>
+                <button class="quick-log-chip" onclick="quickLogWork(60)">+1h</button>
+                <button class="quick-log-chip" onclick="quickLogWork(120)">+2h</button>
+            </div>
+
+            <!-- Tasks Breakdown -->
+            <div class="track-section-header" id="breakdownHeader" style="display: none;">
+                <span class="track-section-title">TASKS BREAKDOWN</span>
+            </div>
+            <div class="breakdown-list" id="breakdownList"></div>
+
+            <!-- Recent Sessions -->
+            <div class="track-section-header">
+                <span class="track-section-title">RECENT SESSIONS</span>
+            </div>
+            <div class="sessions-list" id="sessionsList"></div>
+        </div>
+
+        <!-- 3. Tasks Panel -->
+        <div class="view-panel" id="todosPanel">
+            <div class="tasks-header">
+                <input type="text" class="task-input" id="newTaskInput" placeholder="New Task" onkeydown="if(event.key==='Enter') addTask()">
+            </div>
+            <div class="tasks-list" id="tasksList"></div>
+        </div>
+
+        <!-- 4. Notes Panel -->
+        <div class="view-panel" id="notesPanel">
+            <div class="notes-container">
+                <input type="text" class="notes-input-title" id="noteTitle" placeholder="Title" oninput="saveNoteDebounced()">
+                <textarea class="notes-textarea" id="noteContent" placeholder="Note..." oninput="saveNoteDebounced()"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cloud Sync Modal -->
+    <div class="modal-overlay" id="cloudModal" onclick="if(event.target===this) closeCloudModal()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <span class="modal-title">☁️ Cloud Synchronization</span>
+                <button class="icon-btn" onclick="closeCloudModal()">✕</button>
+            </div>
+            <p class="modal-desc">
+                Connect your free Firebase Realtime Database to sync Mac and iPhone 24/7 without needing either device to stay awake.
+            </p>
+            <input type="url" class="cloud-input" id="firebaseUrlInput" placeholder="https://<project-id>-default-rtdb.firebaseio.com">
+            <button class="save-cloud-btn" onclick="saveCloudConfig()">Connect & Sync</button>
+            <p style="font-size: 11.5px; color: var(--grey); line-height: 1.4;">
+                Tip: If opened via your Mac's setup link, the cloud database is connected automatically!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Register ServiceWorker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+
+        // Web Audio Synthesized Chime
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioCtor = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtor) audioCtx = new AudioCtor();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+        document.addEventListener('touchstart', () => getAudioContext(), { passive: true });
+        document.addEventListener('click', () => getAudioContext(), { passive: true });
+
+        function playAppleChime() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const notes = [880, 1046.5, 1318.5, 1760];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0, now + idx * 0.08);
+                    gain.gain.linearRampToValueAtTime(0.18, now + idx * 0.08 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.65);
+                });
+            } catch(e) {}
+        }
+
+        // Local Storage
+        const STORAGE_STATE_KEY = 'focuspulse_state_v3';
+        const STORAGE_FIREBASE_KEY = 'focuspulse_firebase_url';
+
+        function loadCachedState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_STATE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+            return null;
+        }
+        function saveCachedState(s) {
+            try {
+                localStorage.setItem(STORAGE_STATE_KEY, JSON.stringify(s));
+            } catch(e) {}
+        }
+
+        function generateId() {
+            return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 7);
+        }
+
+        let state = {
+            timerTotalSeconds: 900,
+            timerRemainingSeconds: 900,
+            timerIsRunning: false,
+            isTimerSessionActive: false,
+            timerTargetEndDate: null,
+            todos: [],
+            notes: [],
+            timeLogs: []
+        };
+        let localHours = 0, localMins = 15, localSecs = 0;
+        let noteSaveTimeout = null;
+        let isUserScrollingWheel = false;
+        let currentTrackScope = 'day';
+
+        // Cloud URL Configuration
+        function getCloudURL() {
+            const params = new URLSearchParams(window.location.search);
+            const dbParam = params.get('db');
+            if (dbParam) {
+                localStorage.setItem(STORAGE_FIREBASE_KEY, dbParam.trim());
+                return dbParam.trim();
+            }
+            return (localStorage.getItem(STORAGE_FIREBASE_KEY) || '').trim();
+        }
+
+        function setConnectionStatus(status) {
+            const badge = document.getElementById('syncBadge');
+            const label = document.getElementById('macLabel');
+            if (!badge || !label) return;
+            
+            badge.className = 'sync-badge';
+            if (status === 'connected') {
+                label.textContent = 'Cloud Synced';
+            } else if (status === 'standalone') {
+                badge.classList.add('standalone');
+                label.textContent = 'iPhone Standalone';
+            } else if (status === 'unconfigured') {
+                badge.classList.add('disconnected');
+                label.textContent = 'Tap to Connect Cloud';
+            } else {
+                badge.classList.add('disconnected');
+                label.textContent = 'Connecting...';
+            }
+        }
+
+        function openCloudModal() {
+            document.getElementById('firebaseUrlInput').value = getCloudURL();
+            document.getElementById('cloudModal').classList.add('active');
+        }
+        function closeCloudModal() {
+            document.getElementById('cloudModal').classList.remove('active');
+        }
+        function saveCloudConfig() {
+            const val = document.getElementById('firebaseUrlInput').value.trim();
+            if (val) {
+                localStorage.setItem(STORAGE_FIREBASE_KEY, val);
+                closeCloudModal();
+                initCloudSync();
+            }
+        }
+
+        // Cloud Sync Read / Write
+        let cloudSSE = null;
+
+        function initCloudSync() {
+            const dbUrl = getCloudURL();
+            if (!dbUrl) {
+                setConnectionStatus('unconfigured');
+                return;
+            }
+
+            const cleanUrl = dbUrl.replace(/\/+$/, '');
+            const stateEndpoint = cleanUrl + '/state.json';
+
+            // Initial fetch
+            fetch(stateEndpoint)
+                .then(r => r.json())
+                .then(cloudData => {
+                    if (cloudData && (cloudData.timerTotalSeconds !== undefined || cloudData.timeLogs !== undefined)) {
+                        applyState(cloudData, true);
+                        saveCachedState(cloudData);
+                    }
+                    setConnectionStatus('connected');
+                })
+                .catch(() => {
+                    setConnectionStatus('standalone');
+                });
+
+            // Real-Time Firebase Server-Sent Events (SSE) Stream
+            if (cloudSSE) {
+                cloudSSE.close();
+            }
+            try {
+                cloudSSE = new EventSource(stateEndpoint);
+                cloudSSE.addEventListener('put', event => {
+                    try {
+                        const parsed = JSON.parse(event.data);
+                        if (parsed.path === '/' && parsed.data) {
+                            applyState(parsed.data, true);
+                            saveCachedState(parsed.data);
+                            setConnectionStatus('connected');
+                        } else if (parsed.path && parsed.path !== '/') {
+                            // Fetch fresh full state
+                            fetch(stateEndpoint).then(r => r.json()).then(d => {
+                                if (d) { applyState(d, true); saveCachedState(d); }
+                            });
+                        }
+                    } catch(e) {}
+                });
+                cloudSSE.onerror = () => {
+                    setConnectionStatus('standalone');
+                };
+            } catch(e) {}
+        }
+
+        function pushStateToCloud() {
+            const dbUrl = getCloudURL();
+            if (!dbUrl) return Promise.resolve();
+            const stateEndpoint = dbUrl.replace(/\/+$/, '') + '/state.json';
+            return fetch(stateEndpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(state)
+            }).then(() => {
+                setConnectionStatus('connected');
+            }).catch(() => {
+                setConnectionStatus('standalone');
+            });
+        }
+
+        // Populate wheel columns
+        function initWheels() {
+            const hEl = document.getElementById('innerHours');
+            const mEl = document.getElementById('innerMins');
+            const sEl = document.getElementById('innerSecs');
+            
+            hEl.innerHTML = Array.from({length: 24}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
+            mEl.innerHTML = Array.from({length: 60}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
+            sEl.innerHTML = Array.from({length: 60}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
+
+            ['hours', 'mins', 'secs'].forEach(type => {
+                const id = type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs');
+                const col = document.getElementById(id);
+                if (!col) return;
+                col.addEventListener('click', (e) => {
+                    const item = e.target.closest('.wheel-item');
+                    if (!item) return;
+                    const val = parseInt(item.dataset.val, 10);
+                    if (!isNaN(val)) {
+                        col.scrollTo({ top: val * 42, behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+        initWheels();
+
+        function scrollWheelTo(type, val) {
+            const el = document.getElementById(type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs'));
+            if (!el) return;
+            const itemHeight = 42;
+            el.scrollTop = val * itemHeight;
+            updateSelectedClass(el, val);
+        }
+
+        function updateSelectedClass(col, selectedIndex) {
+            const items = col.querySelectorAll('.wheel-item');
+            items.forEach((item, idx) => {
+                item.classList.toggle('selected', idx === selectedIndex);
+            });
+        }
+
+        function handleWheelScroll(type) {
+            isUserScrollingWheel = true;
+            const el = document.getElementById(type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs'));
+            const itemHeight = 42;
+            const val = Math.round(el.scrollTop / itemHeight);
+            updateSelectedClass(el, val);
+
+            if (type === 'hours') localHours = Math.max(0, Math.min(23, val));
+            if (type === 'mins') localMins = Math.max(0, Math.min(59, val));
+            if (type === 'secs') localSecs = Math.max(0, Math.min(59, val));
+
+            clearTimeout(window.wheelSyncTimer);
+            window.wheelSyncTimer = setTimeout(() => {
+                isUserScrollingWheel = false;
+                const total = Math.max(1, localHours * 3600 + localMins * 60 + localSecs);
+                state.timerTotalSeconds = total;
+                state.timerRemainingSeconds = total;
+                saveCachedState(state);
+                pushStateToCloud();
+            }, 300);
+        }
+
+        // Tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.segmented-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            const p = document.getElementById(tab + 'Panel');
+            if (p) p.classList.add('active');
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        // Timer actions
+        function toggleTimer() {
+            const isActive = !!(state.isTimerSessionActive || state.timerIsRunning);
+            if (!isActive) {
+                clearTimeout(window.wheelSyncTimer);
+                isUserScrollingWheel = false;
+                const total = Math.max(1, localHours * 3600 + localMins * 60 + localSecs);
+                state.isTimerSessionActive = true;
+                state.timerIsRunning = true;
+                state.timerTotalSeconds = total;
+                state.timerRemainingSeconds = total;
+                state.timerTargetEndDate = Date.now() + (total * 1000);
+            } else if (state.timerIsRunning) {
+                state.timerIsRunning = false;
+                if (state.timerTargetEndDate) {
+                    const diff = Math.max(0, state.timerTargetEndDate - Date.now());
+                    state.timerRemainingSeconds = Math.ceil(diff / 1000);
+                    state.timerTargetEndDate = null;
+                }
+            } else {
+                state.timerIsRunning = true;
+                const rem = state.timerRemainingSeconds || state.timerTotalSeconds || 900;
+                state.timerTargetEndDate = Date.now() + (rem * 1000);
+            }
+
+            if (navigator.vibrate) navigator.vibrate(10);
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function cancelTimer() {
+            clearTimeout(window.wheelSyncTimer);
+            isUserScrollingWheel = false;
+            state.isTimerSessionActive = false;
+            state.timerIsRunning = false;
+            state.timerRemainingSeconds = state.timerTotalSeconds || 900;
+            state.timerTargetEndDate = null;
+
+            if (navigator.vibrate) navigator.vibrate(10);
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function setPreset(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            localHours = h;
+            localMins = m;
+            localSecs = s;
+            scrollWheelTo('hours', h);
+            scrollWheelTo('mins', m);
+            scrollWheelTo('secs', s);
+
+            state.timerTotalSeconds = seconds;
+            state.timerRemainingSeconds = seconds;
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function setTrackScope(scope) {
+            currentTrackScope = scope;
+            document.querySelectorAll('.track-scope-tab').forEach(b => {
+                b.classList.toggle('active', b.dataset.scope === scope);
+            });
+            renderTrackView();
+            if (navigator.vibrate) navigator.vibrate(8);
+        }
+
+        function quickLogWork(minutes) {
+            const duration = minutes * 60;
+            const newLog = {
+                id: generateId(),
+                title: 'Work Session',
+                durationSeconds: duration,
+                completedAt: Date.now(),
+                type: 'Manual'
+            };
+            state.timeLogs = [newLog, ...(state.timeLogs || [])];
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        function deleteWorkLog(id) {
+            state.timeLogs = (state.timeLogs || []).filter(l => l.id !== id);
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function addTask() {
+            const input = document.getElementById('newTaskInput');
+            const title = input.value.trim();
+            if (!title) return;
+            const newTodo = {
+                id: generateId(),
+                title,
+                isCompleted: false,
+                trackedSeconds: 0
+            };
+            state.todos = [newTodo, ...(state.todos || [])];
+            input.value = '';
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function toggleTodo(id) {
+            const t = (state.todos || []).find(x => x.id === id);
+            if (t) {
+                t.isCompleted = !t.isCompleted;
+                applyState(state, false);
+                saveCachedState(state);
+                pushStateToCloud();
+            }
+        }
+
+        function deleteTodo(id) {
+            state.todos = (state.todos || []).filter(x => x.id !== id);
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+        }
+
+        function saveNoteDebounced() {
+            clearTimeout(noteSaveTimeout);
+            noteSaveTimeout = setTimeout(() => {
+                const title = document.getElementById('noteTitle').value;
+                const content = document.getElementById('noteContent').value;
+                const existing = state.notes && state.notes[0];
+                if (existing) {
+                    existing.title = title;
+                    existing.content = content;
+                    existing.updatedAt = Date.now();
+                } else {
+                    state.notes = [{ id: generateId(), title, content, updatedAt: Date.now() }];
+                }
+                saveCachedState(state);
+                pushStateToCloud();
+            }, 400);
+        }
+
+        // Formatting Helpers
+        function parseDateToMs(d) {
+            if (!d) return null;
+            if (typeof d === 'number') {
+                if (d < 10000000000) {
+                    if (d < 1200000000) {
+                        return (d + 978307200) * 1000;
+                    }
+                    return d * 1000;
+                }
+                return d;
+            }
+            const parsed = new Date(d).getTime();
+            return isNaN(parsed) ? null : parsed;
+        }
+
+        function formatMMSS(secs) {
+            const c = Math.max(0, secs);
+            const h = Math.floor(c / 3600);
+            const m = Math.floor((c % 3600) / 60);
+            const s = c % 60;
+            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function formatHours(seconds) {
+            const hrs = (seconds / 3600);
+            if (hrs === 0) return '0.0h';
+            return hrs.toFixed(1) + 'h';
+        }
+
+        function formatReadableDuration(seconds) {
+            if (seconds <= 0) return '0m';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (h > 0 && m > 0) return `${h}h ${m}m`;
+            if (h > 0) return `${h}h`;
+            return `${m}m`;
+        }
+
+        function formatSessionDate(dateVal) {
+            const ms = parseDateToMs(dateVal);
+            if (!ms) return '';
+            const d = new Date(ms);
+            const now = new Date();
+            const isToday = d.toDateString() === now.toDateString();
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            const isYesterday = d.toDateString() === yesterday.toDateString();
+            const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            if (isToday) return `Today, ${timeStr}`;
+            if (isYesterday) return `Yesterday, ${timeStr}`;
+            return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
+        }
+
+        let lastTimerSecs = -1;
+
+        function renderTimerDisplay(rem, total, force = false) {
+            if (rem === lastTimerSecs && !force) return;
+            lastTimerSecs = rem;
+
+            document.getElementById('timerCountdown').textContent = formatMMSS(rem);
+
+            const progress = 1.0 - (rem / Math.max(1, total || state.timerTotalSeconds || 1));
+            const circumference = 2 * Math.PI * 115;
+            const offset = circumference * (1.0 - Math.min(1.0, Math.max(0.0, 1.0 - progress)));
+            document.getElementById('ringProgress').style.strokeDashoffset = offset;
+        }
+
+        // Apply State
+        function applyState(newState, fromCloud = false) {
+            state = newState;
+            if (fromCloud) {
+                setConnectionStatus('connected');
+            }
+
+            document.getElementById('timerDot').classList.toggle('active', !!state.timerIsRunning);
+            document.getElementById('timerDotHeader').style.display = state.timerIsRunning ? 'inline' : 'none';
+
+            // 1. Timer Render
+            const isTimerActive = !!(state.isTimerSessionActive || state.timerIsRunning || (state.timerRemainingSeconds < state.timerTotalSeconds && state.timerRemainingSeconds > 0));
+            const ringView = document.getElementById('ringView');
+            const pickerView = document.getElementById('pickerView');
+            const cancelBtn = document.getElementById('cancelTimerBtn');
+            const startBtn = document.getElementById('startTimerBtn');
+
+            if (isTimerActive) {
+                ringView.style.display = 'flex';
+                pickerView.style.display = 'none';
+                cancelBtn.disabled = false;
+                cancelBtn.textContent = 'Cancel';
+
+                if (state.timerIsRunning) {
+                    startBtn.textContent = 'Pause';
+                    startBtn.className = 'circle-btn pause';
+                } else {
+                    startBtn.textContent = 'Resume';
+                    startBtn.className = 'circle-btn start';
+                }
+
+                if (state.timerTargetEndDate) {
+                    const ms = parseDateToMs(state.timerTargetEndDate);
+                    if (ms) {
+                        const d = new Date(ms);
+                        document.getElementById('bellEndTime').textContent = '🔔 ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+
+                if (!state.timerIsRunning) {
+                    renderTimerDisplay(state.timerRemainingSeconds, state.timerTotalSeconds, true);
+                } else if (state.timerTargetEndDate) {
+                    const targetMs = parseDateToMs(state.timerTargetEndDate);
+                    if (targetMs) {
+                        const diff = Math.max(0, targetMs - Date.now());
+                        const rem = Math.ceil(diff / 1000);
+                        renderTimerDisplay(rem, state.timerTotalSeconds, false);
+                    }
+                }
+            } else {
+                lastTimerSecs = -1;
+                ringView.style.display = 'none';
+                pickerView.style.display = 'flex';
+                cancelBtn.disabled = true;
+                startBtn.textContent = 'Start';
+                startBtn.className = 'circle-btn start';
+
+                if (!isUserScrollingWheel) {
+                    const total = state.timerTotalSeconds || 900;
+                    const h = Math.floor(total / 3600);
+                    const m = Math.floor((total % 3600) / 60);
+                    const s = total % 60;
+                    scrollWheelTo('hours', h);
+                    scrollWheelTo('mins', m);
+                    scrollWheelTo('secs', s);
+                }
+
+                const currentTotal = state.timerTotalSeconds || 900;
+                document.querySelectorAll('.preset-chip').forEach(chip => {
+                    const sec = parseInt(chip.getAttribute('data-sec'), 10);
+                    chip.classList.toggle('active', sec === currentTotal);
+                });
+            }
+
+            // 2. Track Insights Render
+            renderTrackView();
+
+            // 3. Tasks Render
+            const tasksList = document.getElementById('tasksList');
+            if (state.todos && state.todos.length > 0) {
+                tasksList.innerHTML = state.todos.map(todo => `
+                    <div class="task-item">
+                        <div class="task-checkbox ${todo.isCompleted ? 'completed' : ''}" onclick="toggleTodo('${todo.id}')"></div>
+                        <span class="task-title ${todo.isCompleted ? 'completed' : ''}">${todo.title}</span>
+                        <button class="icon-btn" onclick="deleteTodo('${todo.id}')">✕</button>
+                    </div>
+                `).join('');
+            } else {
+                tasksList.innerHTML = '<div style="text-align: center; color: var(--grey); margin-top: 40px; font-size: 13px;">No Tasks</div>';
+            }
+
+            // 4. Notes Render
+            if (state.notes && state.notes.length > 0) {
+                const firstNote = state.notes[0];
+                if (document.activeElement !== document.getElementById('noteTitle') &&
+                    document.activeElement !== document.getElementById('noteContent')) {
+                    document.getElementById('noteTitle').value = firstNote.title || '';
+                    document.getElementById('noteContent').value = firstNote.content || '';
+                }
+            }
+        }
+
+        // Render Track Insights
+        function renderTrackView() {
+            const logs = state.timeLogs || [];
+            const now = new Date();
+            const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+            
+            let todaySecs = 0;
+            let todaySessions = 0;
+            logs.forEach(l => {
+                const ms = parseDateToMs(l.completedAt);
+                if (ms && isSameDay(new Date(ms), now)) {
+                    todaySecs += l.durationSeconds || 0;
+                    todaySessions++;
+                }
+            });
+
+            const startOfWeek = new Date(now);
+            const dayIndex = (now.getDay() + 6) % 7;
+            startOfWeek.setDate(now.getDate() - dayIndex);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+            const weekDays = [];
+            let weekSecs = 0;
+
+            for (let i = 0; i < 7; i++) {
+                const curDate = new Date(startOfWeek);
+                curDate.setDate(startOfWeek.getDate() + i);
+                let curDaySecs = 0;
+                logs.forEach(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    if (ms && isSameDay(new Date(ms), curDate)) {
+                        curDaySecs += l.durationSeconds || 0;
+                    }
+                });
+                weekSecs += curDaySecs;
+                weekDays.push({
+                    label: dayLabels[i],
+                    hours: curDaySecs / 3600,
+                    isToday: isSameDay(curDate, now)
+                });
+            }
+
+            let monthSecs = 0;
+            const activeDaysSet = new Set();
+            logs.forEach(l => {
+                const ms = parseDateToMs(l.completedAt);
+                if (ms) {
+                    const d = new Date(ms);
+                    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+                        monthSecs += l.durationSeconds || 0;
+                        activeDaysSet.add(d.toDateString());
+                    }
+                }
+            });
+
+            const heroVal = document.getElementById('trackHeroVal');
+            const heroSub = document.getElementById('trackHeroSub');
+            if (currentTrackScope === 'day') {
+                heroVal.textContent = formatHours(todaySecs);
+                heroSub.textContent = todaySessions === 1 ? '1 focus session today' : `${todaySessions} focus sessions today`;
+            } else if (currentTrackScope === 'week') {
+                heroVal.textContent = formatHours(weekSecs);
+                const avg = (weekSecs / (7 * 3600)).toFixed(1);
+                heroSub.textContent = `Daily avg: ${avg}h/day · ${formatReadableDuration(weekSecs)} total`;
+            } else {
+                heroVal.textContent = formatHours(monthSecs);
+                heroSub.textContent = `${activeDaysSet.size} active working days this month`;
+            }
+
+            const chartBox = document.getElementById('trackChartCard');
+            if (currentTrackScope === 'week') {
+                const maxH = Math.max(4.0, ...weekDays.map(d => d.hours));
+                chartBox.innerHTML = `
+                    <div class="week-bars-container">
+                        ${weekDays.map(d => {
+                            const fillH = d.hours > 0 ? Math.max(4, Math.round((d.hours / maxH) * 52)) : 0;
+                            const valStr = d.hours > 0 ? d.hours.toFixed(1) + 'h' : '';
+                            return `
+                                <div class="day-bar-col">
+                                    <span class="day-bar-val ${d.isToday ? 'today' : ''}">${valStr}</span>
+                                    <div class="day-bar-track">
+                                        <div class="day-bar-fill ${d.isToday ? 'today' : ''}" style="height: ${fillH}px;"></div>
+                                    </div>
+                                    <span class="day-bar-label ${d.isToday ? 'today' : ''}">${d.label}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else if (currentTrackScope === 'month') {
+                const weeks = [ { label: 'W1', secs: 0 }, { label: 'W2', secs: 0 }, { label: 'W3', secs: 0 }, { label: 'W4', secs: 0 } ];
+                logs.forEach(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    if (ms) {
+                        const d = new Date(ms);
+                        if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+                            const wIdx = Math.min(3, Math.floor((d.getDate() - 1) / 7));
+                            weeks[wIdx].secs += l.durationSeconds || 0;
+                        }
+                    }
+                });
+                const maxH = Math.max(10.0, ...weeks.map(w => w.secs / 3600));
+                chartBox.innerHTML = `
+                    <div class="month-bars-container">
+                        ${weeks.map(w => {
+                            const h = w.secs / 3600;
+                            const fillH = h > 0 ? Math.max(4, Math.round((h / maxH) * 52)) : 0;
+                            const valStr = h > 0 ? h.toFixed(1) + 'h' : '';
+                            return `
+                                <div class="week-col">
+                                    <span class="day-bar-val">${valStr}</span>
+                                    <div class="week-bar-track">
+                                        <div class="week-bar-fill" style="height: ${fillH}px;"></div>
+                                    </div>
+                                    <span class="day-bar-label">${w.label}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else {
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                const currentHour = now.getHours();
+                const intervals = [];
+                logs.forEach(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    if (ms && isSameDay(new Date(ms), now)) {
+                        const end = ms;
+                        const start = ms - (l.durationSeconds || 0) * 1000;
+                        intervals.push({ start, end });
+                    }
+                });
+
+                if (state.timerIsRunning || state.isTimerSessionActive) {
+                    const elapsed = (state.timerTotalSeconds || 0) - (state.timerRemainingSeconds || 0);
+                    if (elapsed > 0) {
+                        const end = Date.now();
+                        const start = end - elapsed * 1000;
+                        intervals.push({ start, end });
+                    }
+                }
+
+                const hourStats = [];
+                let maxHourSecs = 1800;
+                for (let h = 0; h < 24; h++) {
+                    const hStart = new Date(startOfDay.getTime() + h * 3600 * 1000).getTime();
+                    const hEnd = hStart + 3600 * 1000;
+                    let overlapSecs = 0;
+                    intervals.forEach(inv => {
+                        const s = Math.max(hStart, inv.start);
+                        const e = Math.min(hEnd, inv.end);
+                        if (e > s) overlapSecs += (e - s) / 1000;
+                    });
+                    const secsClamped = Math.min(3600, Math.round(overlapSecs));
+                    if (secsClamped > maxHourSecs) maxHourSecs = secsClamped;
+                    hourStats.push({ hour: h, secs: secsClamped, isCurrent: h === currentHour });
+                }
+
+                chartBox.innerHTML = `
+                    <div class="timeline-card-inner">
+                        <div class="timeline-header-row">
+                            <span class="timeline-title">24-HOUR ACTIVITY</span>
+                            <span class="timeline-legend">Now: ${currentHour}:00</span>
+                        </div>
+                        <div class="timeline-bars-container">
+                            ${hourStats.map(stat => {
+                                const fillH = stat.secs > 0 ? Math.max(3.5, Math.round((stat.secs / maxHourSecs) * 44)) : (stat.isCurrent && state.timerIsRunning ? 4 : 0);
+                                return `
+                                    <div class="timeline-bar-col">
+                                        <div class="timeline-bar-track ${stat.isCurrent ? 'current' : ''}">
+                                            <div class="timeline-bar-fill ${stat.isCurrent ? 'current' : ''}" style="height: ${fillH}px;"></div>
+                                        </div>
+                                        <div class="timeline-dot ${stat.isCurrent ? 'current' : ''}"></div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="timeline-axis-labels">
+                            <span>12a</span>
+                            <span>6a</span>
+                            <span>12p</span>
+                            <span>6p</span>
+                            <span>12a</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Task Breakdown
+            const breakdownHeader = document.getElementById('breakdownHeader');
+            const breakdownList = document.getElementById('breakdownList');
+            let scopeLogs = [];
+            if (currentTrackScope === 'day') {
+                scopeLogs = logs.filter(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    return ms && isSameDay(new Date(ms), now);
+                });
+            } else if (currentTrackScope === 'week') {
+                scopeLogs = logs.filter(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    return ms && ms >= startOfWeek.getTime();
+                });
+            } else {
+                scopeLogs = logs.filter(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    if (!ms) return false;
+                    const d = new Date(ms);
+                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                });
+            }
+
+            const groupedTasks = {};
+            let totalScopeSecs = 0;
+            scopeLogs.forEach(l => {
+                const key = l.title || 'Work Session';
+                groupedTasks[key] = (groupedTasks[key] || 0) + (l.durationSeconds || 0);
+                totalScopeSecs += (l.durationSeconds || 0);
+            });
+
+            const taskEntries = Object.entries(groupedTasks).sort((a, b) => b[1] - a[1]);
+            if (taskEntries.length > 0) {
+                breakdownHeader.style.display = 'flex';
+                breakdownList.innerHTML = taskEntries.map(([title, secs]) => {
+                    const pct = Math.max(2, Math.round((secs / Math.max(1, totalScopeSecs)) * 100));
+                    return `
+                        <div class="breakdown-row">
+                            <div class="breakdown-labels">
+                                <span style="color: var(--white); font-weight: 500;">${title}</span>
+                                <span style="color: var(--grey); font-variant-numeric: tabular-nums;">${formatHours(secs)} (${pct}%)</span>
+                            </div>
+                            <div class="breakdown-bar-track">
+                                <div class="breakdown-bar-fill" style="width: ${pct}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                breakdownHeader.style.display = 'none';
+                breakdownList.innerHTML = '';
+            }
+
+            // Recent Sessions
+            const sessionsList = document.getElementById('sessionsList');
+            if (logs.length > 0) {
+                sessionsList.innerHTML = logs.slice(0, 10).map(l => `
+                    <div class="session-card">
+                        <div class="session-info">
+                            <span class="session-title">${l.title || 'Work Session'}</span>
+                            <span class="session-time">${formatSessionDate(l.completedAt)}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="session-duration-pill">${formatReadableDuration(l.durationSeconds)}</span>
+                            <button class="icon-btn" onclick="deleteWorkLog('${l.id}')">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                sessionsList.innerHTML = '<div style="text-align: center; color: var(--grey); margin: 20px 0; font-size: 13px;">No work tracked yet</div>';
+            }
+        }
+
+        // Standalone Real-Time Tick Loop
+        setInterval(() => {
+            if (state.timerIsRunning && state.timerTargetEndDate) {
+                const targetMs = parseDateToMs(state.timerTargetEndDate);
+                if (targetMs) {
+                    const diff = targetMs - Date.now();
+                    if (diff <= 0) {
+                        state.timerRemainingSeconds = 0;
+                        state.timerIsRunning = false;
+                        state.isTimerSessionActive = false;
+                        state.timerTargetEndDate = null;
+
+                        playAppleChime();
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
+
+                        const finishedDuration = state.timerTotalSeconds || 900;
+                        const newLog = {
+                            id: generateId(),
+                            title: 'Work Session',
+                            durationSeconds: finishedDuration,
+                            type: 'Timer',
+                            completedAt: Date.now()
+                        };
+                        state.timeLogs = [newLog, ...(state.timeLogs || [])];
+                        saveCachedState(state);
+                        applyState(state, false);
+                        pushStateToCloud();
+                        return;
+                    }
+                    const rem = Math.ceil(diff / 1000);
+                    renderTimerDisplay(rem, state.timerTotalSeconds, false);
+                }
+            }
+        }, 30);
+
+        // Instant Boot from Cache
+        const cachedBoot = loadCachedState();
+        if (cachedBoot && (cachedBoot.timerTotalSeconds !== undefined || cachedBoot.timeLogs !== undefined)) {
+            state = Object.assign(state, cachedBoot);
+            applyState(state, false);
+        }
+
+        // Initialize Cloud Sync
+        initCloudSync();
+    </script>
+</body>
+</html>
