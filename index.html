@@ -232,19 +232,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             position: relative;
             width: 100%;
-            max-width: 330px;
+            max-width: 336px;
             height: 210px;
-            margin-bottom: 24px;
+            margin: 0 auto 24px auto;
         }
         .wheel-column-wrapper {
             display: flex;
             align-items: center;
+            justify-content: center;
             position: relative;
             flex: 1;
-            max-width: 95px;
+            max-width: 106px;
             height: 210px;
         }
         .wheel-column {
@@ -256,6 +257,8 @@
             scrollbar-width: none;
             position: relative;
             z-index: 2;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
         }
         .wheel-column::-webkit-scrollbar {
             display: none;
@@ -266,38 +269,48 @@
         .wheel-item {
             height: 42px;
             line-height: 42px;
+            box-sizing: border-box;
+            width: 100%;
+            padding-right: calc(50% + 4px);
             text-align: right;
-            padding-right: 38px;
-            font-size: 23px;
+            font-size: 22px;
             font-weight: 400;
             font-variant-numeric: tabular-nums;
             color: var(--grey);
             scroll-snap-align: center;
-            transition: color 0.1s, font-weight 0.1s;
+            transition: color 0.12s ease, font-weight 0.12s ease, font-size 0.12s ease;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .wheel-item.selected {
             color: var(--white);
             font-weight: 600;
-            font-size: 24px;
+            font-size: 23px;
         }
         .wheel-unit-label {
             position: absolute;
-            right: 14px;
+            left: calc(50% + 4px);
             top: 50%;
             transform: translateY(-50%);
             font-size: 15px;
             font-weight: 500;
             color: var(--white);
+            letter-spacing: -0.2px;
             pointer-events: none;
             z-index: 3;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .wheel-selection-highlight {
             position: absolute;
             top: 84px;
-            left: 0;
-            right: 0;
+            left: 2px;
+            right: 2px;
             height: 42px;
             background: rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 9px;
             pointer-events: none;
             z-index: 1;
@@ -871,19 +884,19 @@
                             <div class="wheel-column" id="colHours" onscroll="handleWheelScroll('hours')">
                                 <div class="wheel-inner" id="innerHours"></div>
                             </div>
-                            <span class="wheel-unit-label">hours</span>
+                            <span class="wheel-unit-label" id="labelHours">hours</span>
                         </div>
                         <div class="wheel-column-wrapper">
                             <div class="wheel-column" id="colMins" onscroll="handleWheelScroll('mins')">
                                 <div class="wheel-inner" id="innerMins"></div>
                             </div>
-                            <span class="wheel-unit-label">min</span>
+                            <span class="wheel-unit-label" id="labelMins">min</span>
                         </div>
                         <div class="wheel-column-wrapper">
                             <div class="wheel-column" id="colSecs" onscroll="handleWheelScroll('secs')">
                                 <div class="wheel-inner" id="innerSecs"></div>
                             </div>
-                            <span class="wheel-unit-label">sec</span>
+                            <span class="wheel-unit-label" id="labelSecs">sec</span>
                         </div>
                     </div>
 
@@ -1212,6 +1225,10 @@
             const itemHeight = 42;
             el.scrollTop = val * itemHeight;
             updateSelectedClass(el, val);
+            if (type === 'hours') {
+                const label = document.getElementById('labelHours');
+                if (label) label.textContent = val === 1 ? 'hour' : 'hours';
+            }
         }
 
         function updateSelectedClass(col, selectedIndex) {
@@ -1228,7 +1245,11 @@
             const val = Math.round(el.scrollTop / itemHeight);
             updateSelectedClass(el, val);
 
-            if (type === 'hours') localHours = Math.max(0, Math.min(23, val));
+            if (type === 'hours') {
+                localHours = Math.max(0, Math.min(23, val));
+                const label = document.getElementById('labelHours');
+                if (label) label.textContent = localHours === 1 ? 'hour' : 'hours';
+            }
             if (type === 'mins') localMins = Math.max(0, Math.min(59, val));
             if (type === 'secs') localSecs = Math.max(0, Math.min(59, val));
 
@@ -1866,12 +1887,12 @@
             }
         }, 30);
 
-        // Instant Boot from Cache
+        // Instant Boot from Cache or Defaults
         const cachedBoot = loadCachedState();
         if (cachedBoot && (cachedBoot.timerTotalSeconds !== undefined || cachedBoot.timeLogs !== undefined)) {
             state = Object.assign(state, cachedBoot);
-            applyState(state, false);
         }
+        applyState(state, false);
 
         // Initialize Cloud Sync
         initCloudSync();
