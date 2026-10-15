@@ -1138,19 +1138,15 @@
         // Cloud Sync Read / Write
         let cloudSSE = null;
         let cloudPollInterval = null;
-        let lastWebPushTime = 0;
 
         function fetchCloudSnapshot() {
             const dbUrl = getCloudURL();
             if (!dbUrl) return;
-            // Ignore incoming reads for 2.0s after our own local user interaction
-            if (Date.now() - lastWebPushTime < 2000) return;
             const cleanUrl = dbUrl.replace(/\/+$/, '');
             const stateEndpoint = cleanUrl + '/state.json';
             fetch(stateEndpoint)
                 .then(r => r.json())
                 .then(cloudData => {
-                    if (Date.now() - lastWebPushTime < 2000) return;
                     if (cloudData && (cloudData.timerTotalSeconds !== undefined || cloudData.timeLogs !== undefined || cloudData.timerIsRunning !== undefined)) {
                         applyState(cloudData, true);
                         saveCachedState(state);
@@ -1187,10 +1183,10 @@
                 cloudSSE = null;
             }
             try {
-                cloudSSE = new EventSource(stateEndpoint);
-                cloudSSE.addEventListener('put', event => {
+                const sse = new EventSource(stateEndpoint);
+                cloudSSE = sse;
+                sse.addEventListener('put', event => {
                     try {
-                        if (Date.now() - lastWebPushTime < 2000) return;
                         const parsed = JSON.parse(event.data);
                         if (parsed.path === '/' && parsed.data) {
                             applyState(parsed.data, true);
@@ -1201,14 +1197,13 @@
                         }
                     } catch(e) {}
                 });
-                cloudSSE.addEventListener('patch', event => {
+                sse.addEventListener('patch', event => {
                     try {
-                        if (Date.now() - lastWebPushTime < 2000) return;
                         fetchCloudSnapshot();
                     } catch(e) {}
                 });
-                cloudSSE.onerror = () => {
-                    // Handled gracefully: background poll keeps state fresh and reconnects automatically
+                sse.onerror = () => {
+                    // Handled gracefully: background poll keeps state fresh
                 };
             } catch(e) {}
         }
@@ -1226,7 +1221,6 @@
         function pushStateToCloud() {
             const dbUrl = getCloudURL();
             if (!dbUrl) return Promise.resolve();
-            lastWebPushTime = Date.now();
             const stateEndpoint = dbUrl.replace(/\/+$/, '') + '/state.json';
             return fetch(stateEndpoint, {
                 method: 'PUT',
@@ -1536,13 +1530,31 @@
 
         // Apply State
         function applyState(newState, fromCloud = false) {
-            if (fromCloud && Date.now() - lastWebPushTime < 2000) {
-                return;
-            }
-            state = Object.assign({}, state, newState);
             if (fromCloud) {
+                // Smart conflict resolution: only adopt cloud timer state if it actually differs
+                const runningChanged = newState.timerIsRunning !== undefined && newState.timerIsRunning !== state.timerIsRunning;
+                const sessionChanged = newState.isTimerSessionActive !== undefined && newState.isTimerSessionActive !== state.isTimerSessionActive;
+                const totalChanged = newState.timerTotalSeconds !== undefined && newState.timerTotalSeconds !== state.timerTotalSeconds;
+                const logsChanged = newState.timeLogs !== undefined && JSON.stringify(newState.timeLogs) !== JSON.stringify(state.timeLogs);
+                const todosChanged = newState.todos !== undefined && JSON.stringify(newState.todos) !== JSON.stringify(state.todos);
+
+                let endChanged = false;
+                if (newState.timerTargetEndDate !== undefined) {
+                    const cloudMs = parseDateToMs(newState.timerTargetEndDate);
+                    const localMs = parseDateToMs(state.timerTargetEndDate);
+                    endChanged = Math.abs((cloudMs || 0) - (localMs || 0)) > 1500;
+                }
+
+                const nothingChanged = !runningChanged && !sessionChanged && !totalChanged && !endChanged && !logsChanged && !todosChanged;
+                if (nothingChanged) {
+                    setConnectionStatus('connected');
+                    return; // Skip re-render — no actual changes
+                }
+
                 setConnectionStatus('connected');
             }
+
+            state = Object.assign({}, state, newState);
 
             document.getElementById('timerDot').classList.toggle('active', !!state.timerIsRunning);
             document.getElementById('timerDotHeader').style.display = state.timerIsRunning ? 'inline' : 'none';
