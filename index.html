@@ -990,10 +990,21 @@
     </div>
 
     <script>
-        // Register ServiceWorker
+        // Register ServiceWorker with automatic cache-busting & updates
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
+                navigator.serviceWorker.register('sw.js?v=4').then(reg => {
+                    reg.update();
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                window.location.reload();
+                            }
+                        });
+                    });
+                }).catch(() => {});
             });
         }
 
@@ -1076,11 +1087,16 @@
             const params = new URLSearchParams(window.location.search);
             const dbParam = params.get('db');
             if (dbParam) {
-                localStorage.setItem(STORAGE_FIREBASE_KEY, dbParam.trim());
-                return dbParam.trim();
+                const cleaned = dbParam.trim();
+                localStorage.setItem(STORAGE_FIREBASE_KEY, cleaned);
+                return cleaned;
             }
             const stored = (localStorage.getItem(STORAGE_FIREBASE_KEY) || '').trim();
-            return stored || DEFAULT_FIREBASE_URL;
+            if (stored && stored.includes('firebaseio.com')) {
+                return stored;
+            }
+            localStorage.setItem(STORAGE_FIREBASE_KEY, DEFAULT_FIREBASE_URL);
+            return DEFAULT_FIREBASE_URL;
         }
 
         function setConnectionStatus(status) {
@@ -1121,6 +1137,28 @@
 
         // Cloud Sync Read / Write
         let cloudSSE = null;
+        let cloudPollInterval = null;
+        let lastWebPushTime = 0;
+
+        function fetchCloudSnapshot() {
+            const dbUrl = getCloudURL();
+            if (!dbUrl) return;
+            // Ignore incoming reads for 2.0s after our own local user interaction
+            if (Date.now() - lastWebPushTime < 2000) return;
+            const cleanUrl = dbUrl.replace(/\/+$/, '');
+            const stateEndpoint = cleanUrl + '/state.json';
+            fetch(stateEndpoint)
+                .then(r => r.json())
+                .then(cloudData => {
+                    if (Date.now() - lastWebPushTime < 2000) return;
+                    if (cloudData && (cloudData.timerTotalSeconds !== undefined || cloudData.timeLogs !== undefined || cloudData.timerIsRunning !== undefined)) {
+                        applyState(cloudData, true);
+                        saveCachedState(state);
+                    }
+                    setConnectionStatus('connected');
+                })
+                .catch(() => {});
+        }
 
         function initCloudSync() {
             const dbUrl = getCloudURL();
@@ -1132,57 +1170,63 @@
             const cleanUrl = dbUrl.replace(/\/+$/, '');
             const stateEndpoint = cleanUrl + '/state.json';
 
-            // Initial fetch
-            fetch(stateEndpoint)
-                .then(r => r.json())
-                .then(cloudData => {
-                    if (cloudData && (cloudData.timerTotalSeconds !== undefined || cloudData.timeLogs !== undefined)) {
-                        applyState(cloudData, true);
-                        saveCachedState(cloudData);
-                    }
-                    setConnectionStatus('connected');
-                })
-                .catch(() => {
-                    setConnectionStatus('standalone');
-                });
+            // Initial immediate fetch
+            fetchCloudSnapshot();
+
+            // Heartbeat poll every 1.5s (critical for iOS Safari when SSE sleeps or disconnects)
+            if (cloudPollInterval) clearInterval(cloudPollInterval);
+            cloudPollInterval = setInterval(() => {
+                if (!document.hidden) {
+                    fetchCloudSnapshot();
+                }
+            }, 1500);
 
             // Real-Time Firebase Server-Sent Events (SSE) Stream
             if (cloudSSE) {
-                cloudSSE.close();
+                try { cloudSSE.close(); } catch(e) {}
+                cloudSSE = null;
             }
             try {
                 cloudSSE = new EventSource(stateEndpoint);
                 cloudSSE.addEventListener('put', event => {
                     try {
+                        if (Date.now() - lastWebPushTime < 2000) return;
                         const parsed = JSON.parse(event.data);
                         if (parsed.path === '/' && parsed.data) {
                             applyState(parsed.data, true);
                             saveCachedState(state);
                             setConnectionStatus('connected');
                         } else if (parsed.path && parsed.path !== '/') {
-                            // Fetch fresh full state
-                            fetch(stateEndpoint).then(r => r.json()).then(d => {
-                                if (d) { applyState(d, true); saveCachedState(state); }
-                            }).catch(() => {});
+                            fetchCloudSnapshot();
                         }
                     } catch(e) {}
                 });
                 cloudSSE.addEventListener('patch', event => {
                     try {
-                        fetch(stateEndpoint).then(r => r.json()).then(d => {
-                            if (d) { applyState(d, true); saveCachedState(state); }
-                        }).catch(() => {});
+                        if (Date.now() - lastWebPushTime < 2000) return;
+                        fetchCloudSnapshot();
                     } catch(e) {}
                 });
                 cloudSSE.onerror = () => {
-                    setConnectionStatus('standalone');
+                    // Handled gracefully: background poll keeps state fresh and reconnects automatically
                 };
             } catch(e) {}
         }
 
+        // Reconnect immediately on app foreground, phone unlock, or network recovery
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                initCloudSync();
+            }
+        });
+        window.addEventListener('focus', () => initCloudSync());
+        window.addEventListener('pageshow', () => initCloudSync());
+        window.addEventListener('online', () => initCloudSync());
+
         function pushStateToCloud() {
             const dbUrl = getCloudURL();
             if (!dbUrl) return Promise.resolve();
+            lastWebPushTime = Date.now();
             const stateEndpoint = dbUrl.replace(/\/+$/, '') + '/state.json';
             return fetch(stateEndpoint, {
                 method: 'PUT',
@@ -1492,6 +1536,9 @@
 
         // Apply State
         function applyState(newState, fromCloud = false) {
+            if (fromCloud && Date.now() - lastWebPushTime < 2000) {
+                return;
+            }
             state = Object.assign({}, state, newState);
             if (fromCloud) {
                 setConnectionStatus('connected');
