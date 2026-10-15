@@ -1,4 +1,4 @@
-const CACHE_NAME = 'focuspulse-ghpages-v1';
+const CACHE_NAME = 'focuspulse-ghpages-v3';
 const ASSETS = [
     './',
     './index.html',

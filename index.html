@@ -1034,9 +1034,10 @@
             } catch(e) {}
         }
 
-        // Local Storage
+        // Local Storage & Permanent Cloud Connection
         const STORAGE_STATE_KEY = 'focuspulse_state_v3';
         const STORAGE_FIREBASE_KEY = 'focuspulse_firebase_url';
+        const DEFAULT_FIREBASE_URL = 'https://focuspulse-d6131-default-rtdb.firebaseio.com';
 
         function loadCachedState() {
             try {
@@ -1070,7 +1071,7 @@
         let isUserScrollingWheel = false;
         let currentTrackScope = 'day';
 
-        // Cloud URL Configuration
+        // Cloud URL Configuration — Connected to Firebase by default
         function getCloudURL() {
             const params = new URLSearchParams(window.location.search);
             const dbParam = params.get('db');
@@ -1078,7 +1079,8 @@
                 localStorage.setItem(STORAGE_FIREBASE_KEY, dbParam.trim());
                 return dbParam.trim();
             }
-            return (localStorage.getItem(STORAGE_FIREBASE_KEY) || '').trim();
+            const stored = (localStorage.getItem(STORAGE_FIREBASE_KEY) || '').trim();
+            return stored || DEFAULT_FIREBASE_URL;
         }
 
         function setConnectionStatus(status) {
