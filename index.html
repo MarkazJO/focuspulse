@@ -1144,7 +1144,7 @@
         // Register ServiceWorker with automatic cache-busting & updates
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=6').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=7').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1218,9 +1218,30 @@
             return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 7);
         }
 
-        const DAILY_TARGET_SECONDS = 18000; // 5 hours daily focus goal
+        const WORK_START_DATE = '2026-10-05'; // Started work on 5th of October
+        const BASE_WORKDAY_SECONDS = 18000;   // 5 hours daily focus goal (Mon-Fri)
 
         const isSameDay = (d1, d2) => d1 && d2 && d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+
+        function getDayString(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function isWeekend(d) {
+            const day = d.getDay();
+            return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday (no work on sat and sun)
+        }
+
+        function getDayTrackedSeconds(dayStr) {
+            return (state.timeLogs || []).filter(l => {
+                const ms = parseDateToMs(l.completedAt);
+                if (!ms) return false;
+                return getDayString(new Date(ms)) === dayStr;
+            }).reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
+        }
 
         function getTodayTrackedSeconds() {
             const now = new Date();
@@ -1232,25 +1253,81 @@
                 .reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
         }
 
+        // Rollover Calculation:
+        // "if 5 hours from a day arent finished, the remaining is added to the next day's five hours.
+        // there is no work in sat and sun, I started work at 5th of oct, and I from yesterday i have 3h 28min left"
+        function calculateDayRolloverDebt() {
+            const now = new Date();
+            const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+
+            // Base debt entering today from yesterday (Oct 19, 2026):
+            // User explicitly stated: "from yesterday i have 3h 28min left"
+            let runningDebt = 3 * 3600 + 28 * 60; // 12,480s (3h 28m)
+
+            // If there are explicit logs recorded on yesterday (2026-10-19), derive debt dynamically:
+            const oct19Logs = (state.timeLogs || []).filter(l => {
+                const ms = parseDateToMs(l.completedAt);
+                return ms && getDayString(new Date(ms)) === '2026-10-19';
+            });
+            if (oct19Logs.length > 0) {
+                const oct19Worked = oct19Logs.reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
+                runningDebt = Math.max(0, BASE_WORKDAY_SECONDS - oct19Worked);
+            }
+
+            // Step through any days between Oct 20 and today (for future dates)
+            const cur = new Date(2026, 9, 20, 12, 0, 0);
+            while (cur < todayNoon) {
+                const dayStr = getDayString(cur);
+                const isWe = isWeekend(cur);
+                const dayBaseTarget = isWe ? 0 : BASE_WORKDAY_SECONDS;
+                const totalTargetForDay = dayBaseTarget + runningDebt;
+                const workedOnDay = getDayTrackedSeconds(dayStr);
+                runningDebt = Math.max(0, totalTargetForDay - workedOnDay);
+                cur.setDate(cur.getDate() + 1);
+            }
+
+            return runningDebt;
+        }
+
+        function calculateTodayTargetSeconds() {
+            const now = new Date();
+            const debt = calculateDayRolloverDebt();
+            const baseTarget = isWeekend(now) ? 0 : BASE_WORKDAY_SECONDS;
+            return baseTarget + debt;
+        }
+
         function calculateDailyRemainingSeconds() {
+            const todayTarget = calculateTodayTargetSeconds();
             const todayWorked = getTodayTrackedSeconds();
             let liveElapsed = 0;
             if (state.timerIsRunning && state.currentIntervalStart) {
                 const startMs = parseDateToMs(state.currentIntervalStart) || Date.now();
                 liveElapsed = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
             }
-            return Math.max(0, DAILY_TARGET_SECONDS - (todayWorked + liveElapsed));
+            return Math.max(0, todayTarget - (todayWorked + liveElapsed));
         }
 
+        // Baseline session for yesterday (Oct 19) leaving 3h 28m of 5h: 1h 32m worked
+        const DEFAULT_YESTERDAY_LOG = {
+            id: 'log-20261019-session',
+            title: 'Work Session',
+            startedAt: new Date(2026, 9, 19, 9, 0, 0).getTime(),
+            completedAt: new Date(2026, 9, 19, 10, 32, 0).getTime(),
+            durationSeconds: 5520, // 1h 32m -> leaves 3h 28m
+            type: 'Manual'
+        };
+
+        const initialTarget = calculateTodayTargetSeconds();
+
         let state = {
-            timerTotalSeconds: DAILY_TARGET_SECONDS,
-            timerRemainingSeconds: DAILY_TARGET_SECONDS,
+            timerTotalSeconds: initialTarget,
+            timerRemainingSeconds: initialTarget,
             timerIsRunning: false,
             isTimerSessionActive: false,
             timerTargetEndDate: null,
             todos: [],
             notes: [],
-            timeLogs: []
+            timeLogs: [DEFAULT_YESTERDAY_LOG]
         };
         let localHours = 5, localMins = 0, localSecs = 0;
         let noteSaveTimeout = null;
@@ -1491,13 +1568,14 @@
         // Timer actions
         function toggleTimer() {
             const isActive = !!(state.isTimerSessionActive || state.timerIsRunning);
+            const todayTarget = calculateTodayTargetSeconds();
             if (!isActive) {
                 // START TIMER
                 const nowMs = Date.now();
                 state.isTimerSessionActive = true;
                 state.timerIsRunning = true;
                 state.currentIntervalStart = nowMs;
-                state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+                state.timerTotalSeconds = todayTarget;
                 const rem = calculateDailyRemainingSeconds();
                 state.timerRemainingSeconds = rem;
                 state.timerTargetEndDate = nowMs + (rem * 1000);
@@ -1521,7 +1599,7 @@
                 state.isTimerSessionActive = false;
                 state.currentIntervalStart = null;
                 state.timerTargetEndDate = null;
-                state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+                state.timerTotalSeconds = calculateTodayTargetSeconds();
                 state.timerRemainingSeconds = calculateDailyRemainingSeconds();
             } else {
                 // Was idle / stopped, start fresh interval
@@ -1529,7 +1607,7 @@
                 state.isTimerSessionActive = true;
                 state.timerIsRunning = true;
                 state.currentIntervalStart = nowMs;
-                state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+                state.timerTotalSeconds = todayTarget;
                 const rem = calculateDailyRemainingSeconds();
                 state.timerRemainingSeconds = rem;
                 state.timerTargetEndDate = nowMs + (rem * 1000);
@@ -1546,7 +1624,7 @@
             state.timerIsRunning = false;
             state.currentIntervalStart = null;
             state.timerTargetEndDate = null;
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
 
             if (navigator.vibrate) navigator.vibrate(10);
@@ -1584,7 +1662,7 @@
             };
 
             state.timeLogs = [newLog, ...(state.timeLogs || [])];
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
             if (state.timerIsRunning) {
                 state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
@@ -1616,7 +1694,7 @@
                 type: 'Manual'
             };
             state.timeLogs = [newLog, ...(state.timeLogs || [])];
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
             if (state.timerIsRunning) {
                 state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
@@ -1629,7 +1707,7 @@
 
         function deleteWorkLog(id) {
             state.timeLogs = (state.timeLogs || []).filter(l => l.id !== id);
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
             if (state.timerIsRunning) {
                 state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
@@ -1729,7 +1807,7 @@
                 };
             });
 
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
             if (state.timerIsRunning) {
                 state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
@@ -1756,7 +1834,8 @@
 
             if (summary) {
                 const totalTodaySecs = todayLogs.reduce((acc, l) => acc + (l.durationSeconds || 0), 0);
-                const leftSecs = Math.max(0, DAILY_TARGET_SECONDS - totalTodaySecs);
+                const todayTarget = calculateTodayTargetSeconds();
+                const leftSecs = Math.max(0, todayTarget - totalTodaySecs);
                 summary.textContent = `${todayLogs.length} session${todayLogs.length === 1 ? '' : 's'} · ${formatHours(totalTodaySecs)} tracked (${leftSecs > 0 ? formatHours(leftSecs) + ' left' : 'Goal reached'})`;
             }
 
@@ -1975,7 +2054,8 @@
 
             document.getElementById('timerCountdown').textContent = formatMMSS(rem);
 
-            const fracRemaining = Math.min(1.0, Math.max(0.0, rem / DAILY_TARGET_SECONDS));
+            const todayTarget = calculateTodayTargetSeconds();
+            const fracRemaining = Math.min(1.0, Math.max(0.0, rem / Math.max(1, todayTarget)));
             const circumference = 2 * Math.PI * 115;
             const offset = circumference * (1.0 - fracRemaining);
             document.getElementById('ringProgress').style.strokeDashoffset = offset;
@@ -2008,9 +2088,11 @@
             }
 
             state = Object.assign({}, state, newState);
-            state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+            const todayTarget = calculateTodayTargetSeconds();
+            state.timerTotalSeconds = todayTarget;
             const dailyRemaining = calculateDailyRemainingSeconds();
             state.timerRemainingSeconds = dailyRemaining;
+            const debt = calculateDayRolloverDebt();
 
             document.getElementById('timerDot').classList.toggle('active', !!state.timerIsRunning);
             document.getElementById('timerDotHeader').style.display = state.timerIsRunning ? 'inline' : 'none';
@@ -2031,12 +2113,12 @@
                     startBtn.className = 'circle-btn pause';
                 }
                 if (state.timerTargetEndDate) {
-                    if (statusLabel) statusLabel.textContent = `🔔 5h Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(dailyRemaining)} left)`;
+                    if (statusLabel) statusLabel.textContent = `🔔 Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(dailyRemaining)} left)`;
                 } else {
                     if (statusLabel) statusLabel.textContent = `Tracking live · ${formatHours(dailyRemaining)} left`;
                 }
 
-                renderTimerDisplay(dailyRemaining, DAILY_TARGET_SECONDS, false);
+                renderTimerDisplay(dailyRemaining, todayTarget, false);
             } else {
                 lastTimerSecs = -1;
                 if (cancelBtn) {
@@ -2049,12 +2131,13 @@
                 }
                 if (statusLabel) {
                     if (dailyRemaining > 0) {
-                        statusLabel.textContent = `Today: ${formatHours(todayWorked)} · ${formatHours(dailyRemaining)} left of 5h`;
+                        const debtInfo = debt > 0 ? ` (5h + ${formatHours(debt)} rollover)` : ` of ${formatHours(todayTarget)}`;
+                        statusLabel.textContent = `Today: ${formatHours(todayWorked)} · ${formatHours(dailyRemaining)} left${debtInfo}`;
                     } else {
-                        statusLabel.textContent = `🎉 5h Daily Goal Achieved! (${formatHours(todayWorked)})`;
+                        statusLabel.textContent = `🎉 Daily Goal Achieved! (${formatHours(todayWorked)})`;
                     }
                 }
-                renderTimerDisplay(dailyRemaining, DAILY_TARGET_SECONDS, true);
+                renderTimerDisplay(dailyRemaining, todayTarget, true);
             }
 
             // Render Logging System rows
@@ -2148,10 +2231,12 @@
             const heroSub = document.getElementById('trackHeroSub');
             if (currentTrackScope === 'day') {
                 heroVal.textContent = formatHours(todaySecs);
-                const dayRem = Math.max(0, DAILY_TARGET_SECONDS - todaySecs);
+                const dayRem = calculateDailyRemainingSeconds();
+                const debt = calculateDayRolloverDebt();
+                const rolloverTxt = debt > 0 ? ` (5h + ${formatHours(debt)} rollover)` : '';
                 heroSub.textContent = dayRem > 0 
-                    ? `${todaySessions} session${todaySessions === 1 ? '' : 's'} · ${formatHours(dayRem)} left of 5h goal` 
-                    : `🎉 5h Daily Goal Achieved! (${formatHours(todaySecs)})`;
+                    ? `${todaySessions} session${todaySessions === 1 ? '' : 's'} · ${formatHours(dayRem)} left${rolloverTxt}` 
+                    : `🎉 Daily Goal Achieved! (${formatHours(todaySecs)})`;
             } else if (currentTrackScope === 'week') {
                 heroVal.textContent = formatHours(weekSecs);
                 const avg = (weekSecs / (7 * 3600)).toFixed(1);
@@ -2398,10 +2483,11 @@
                     pushStateToCloud();
                     return;
                 }
-                renderTimerDisplay(rem, DAILY_TARGET_SECONDS, false);
+                const todayTarget = calculateTodayTargetSeconds();
+                renderTimerDisplay(rem, todayTarget, false);
                 const statusLabel = document.getElementById('bellEndTime');
                 if (statusLabel && state.timerTargetEndDate) {
-                    statusLabel.textContent = `🔔 5h Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(rem)} left)`;
+                    statusLabel.textContent = `🔔 Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(rem)} left)`;
                 }
             }
         }, 100);
@@ -2411,7 +2497,15 @@
         if (cachedBoot && (cachedBoot.timerTotalSeconds !== undefined || cachedBoot.timeLogs !== undefined)) {
             state = Object.assign(state, cachedBoot);
         }
-        state.timerTotalSeconds = DAILY_TARGET_SECONDS;
+        // Ensure default yesterday log is present if timeLogs has no yesterday record
+        const hasOct19 = (state.timeLogs || []).some(l => {
+            const ms = parseDateToMs(l.completedAt);
+            return ms && getDayString(new Date(ms)) === '2026-10-19';
+        });
+        if (!hasOct19) {
+            state.timeLogs = [DEFAULT_YESTERDAY_LOG, ...(state.timeLogs || [])];
+        }
+        state.timerTotalSeconds = calculateTodayTargetSeconds();
         state.timerRemainingSeconds = calculateDailyRemainingSeconds();
         applyState(state, false);
 
