@@ -432,19 +432,15 @@
             margin-top: 2px;
         }
 
-        /* 24-Hour Timeline Bar Chart Card */
-        .chart-card {
-            background-color: var(--surface);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
+        /* Day Timeline — minute-precision horizontal strip */
+        .timeline-card-inner {
+            overflow: hidden;
         }
         .timeline-header-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .timeline-title {
             font-size: 11px;
@@ -457,58 +453,154 @@
             color: var(--grey);
             font-variant-numeric: tabular-nums;
         }
-        .timeline-bars-container {
-            display: flex;
-            align-items: flex-end;
-            height: 48px;
-            gap: 2px;
-            padding: 0 2px;
+        /* Scrollable 24h strip */
+        .timeline-strip-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
         }
-        .timeline-bar-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
+        .timeline-strip-scroll::-webkit-scrollbar { display: none; }
+        .timeline-strip {
+            position: relative;
+            height: 52px;
+            /* 24 hours × 40px/hour = 960px wide */
+            min-width: 960px;
         }
-        .timeline-bar-track {
-            width: 100%;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            overflow: hidden;
+        .tl-hour-mark {
+            position: absolute;
+            top: 0;
+            bottom: 16px;
+            width: 1px;
+            background: rgba(255,255,255,0.06);
         }
-        .timeline-bar-track.current {
-            background: rgba(255, 159, 10, 0.12);
-        }
-        .timeline-bar-fill {
-            width: 100%;
-            background: var(--orange);
-            border-radius: 3px;
-            min-height: 0;
-            transition: height 0.3s ease;
-        }
-        .timeline-dot {
-            width: 2.5px;
-            height: 2.5px;
-            border-radius: 50%;
-            background: transparent;
-            margin-top: 3px;
-        }
-        .timeline-dot.current {
-            background: var(--orange);
-        }
-        .timeline-axis-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 9.5px;
+        .tl-hour-label {
+            position: absolute;
+            bottom: 0;
+            font-size: 9px;
             color: var(--grey);
-            margin-top: 4px;
-            padding: 0 4px;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .tl-session-block {
+            position: absolute;
+            top: 4px;
+            height: 28px;
+            background: var(--orange);
+            border-radius: 5px;
+            opacity: 0.9;
+            cursor: pointer;
+            min-width: 4px;
+            transition: opacity 0.15s;
+        }
+        .tl-session-block:active { opacity: 0.65; }
+        .tl-session-block.active-session {
+            background: #ffb340;
+            animation: tl-pulse 2s ease-in-out infinite;
+        }
+        @keyframes tl-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.6; }
+        }
+        .tl-now-line {
+            position: absolute;
+            top: 0;
+            bottom: 16px;
+            width: 2px;
+            background: var(--orange);
+            border-radius: 1px;
+        }
+
+        /* Session Edit Modal */
+        .edit-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .edit-modal-overlay.active { display: flex; }
+        .edit-modal-sheet {
+            background: var(--surface);
+            border-radius: 20px 20px 0 0;
+            padding: 24px 20px 36px;
+            width: 100%;
+            max-width: 430px;
+            border-top: 1px solid var(--border);
+        }
+        .edit-modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+        .edit-field {
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            color: var(--white);
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+        .edit-field:focus { outline: none; border-color: var(--orange); }
+        .edit-duration-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .edit-duration-label {
+            font-size: 12px;
+            color: var(--grey);
+            white-space: nowrap;
+        }
+        .edit-duration-input {
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            color: var(--white);
+            flex: 1;
+            font-family: inherit;
+            font-variant-numeric: tabular-nums;
+        }
+        .edit-duration-input:focus { outline: none; border-color: var(--orange); }
+        .edit-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .edit-cancel-btn {
+            flex: 1;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            color: var(--grey);
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .edit-save-btn {
+            flex: 2;
+            background: var(--orange);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+            font-family: inherit;
+            cursor: pointer;
         }
 
         /* Weekly & Monthly Charts */
@@ -926,12 +1018,12 @@
             </div>
 
             <div class="track-hero-card">
-                <div class="track-hero-val" id="trackHeroVal">0.0h</div>
+                <div class="track-hero-val" id="trackHeroVal">0m</div>
                 <div class="track-hero-sub" id="trackHeroSub">0 focus sessions today</div>
             </div>
 
             <!-- Visual Chart Card -->
-            <div class="chart-card" id="trackChartCard"></div>
+            <div class="chart-card" id="trackChartCard" style="background-color: var(--surface); border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border);"></div>
 
             <!-- Quick Log Row -->
             <div class="quick-log-row">
@@ -986,6 +1078,22 @@
             <p style="font-size: 11.5px; color: var(--grey); line-height: 1.4;">
                 Tip: If opened via your Mac's setup link, the cloud database is connected automatically!
             </p>
+        </div>
+    </div>
+
+    <!-- Session Edit Modal -->
+    <div class="edit-modal-overlay" id="editSessionModal" onclick="if(event.target===this) closeEditModal()">
+        <div class="edit-modal-sheet">
+            <div class="edit-modal-title">Edit Session</div>
+            <input type="text" class="edit-field" id="editSessionTitle" placeholder="Session title">
+            <div class="edit-duration-row">
+                <span class="edit-duration-label">Duration (min)</span>
+                <input type="number" class="edit-duration-input" id="editSessionMins" min="1" max="1440" placeholder="e.g. 45">
+            </div>
+            <div class="edit-modal-actions">
+                <button class="edit-cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="edit-save-btn" onclick="saveEditedSession()">Save</button>
+            </div>
         </div>
     </div>
 
@@ -1407,6 +1515,38 @@
             pushStateToCloud();
         }
 
+        let editingSessionId = null;
+
+        function openEditModal(id) {
+            const log = (state.timeLogs || []).find(l => l.id === id);
+            if (!log) return;
+            editingSessionId = id;
+            document.getElementById('editSessionTitle').value = log.title || 'Work Session';
+            document.getElementById('editSessionMins').value = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
+            document.getElementById('editSessionModal').classList.add('active');
+            if (navigator.vibrate) navigator.vibrate(8);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editSessionModal').classList.remove('active');
+            editingSessionId = null;
+        }
+
+        function saveEditedSession() {
+            if (!editingSessionId) return;
+            const title = document.getElementById('editSessionTitle').value.trim() || 'Work Session';
+            const mins = Math.max(1, parseInt(document.getElementById('editSessionMins').value, 10) || 1);
+            state.timeLogs = (state.timeLogs || []).map(l => {
+                if (l.id !== editingSessionId) return l;
+                return { ...l, title, durationSeconds: mins * 60 };
+            });
+            closeEditModal();
+            applyState(state, false);
+            saveCachedState(state);
+            pushStateToCloud();
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
         function addTask() {
             const input = document.getElementById('newTaskInput');
             const title = input.value.trim();
@@ -1485,9 +1625,12 @@
         }
 
         function formatHours(seconds) {
-            const hrs = (seconds / 3600);
-            if (hrs === 0) return '0.0h';
-            return hrs.toFixed(1) + 'h';
+            if (seconds <= 0) return '0m';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (h > 0 && m > 0) return `${h}h ${m}m`;
+            if (h > 0) return `${h}h`;
+            return `${m}m`;
         }
 
         function formatReadableDuration(seconds) {
@@ -1773,71 +1916,75 @@
                     </div>
                 `;
             } else {
-                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-                const currentHour = now.getHours();
-                const intervals = [];
-                logs.forEach(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    if (ms && isSameDay(new Date(ms), now)) {
-                        const end = ms;
-                        const start = ms - (l.durationSeconds || 0) * 1000;
-                        intervals.push({ start, end });
+                const dayStartMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
+                const dayDurationMs = 24 * 3600 * 1000;
+                const pxPerMs = 960 / dayDurationMs; // 960px = 24 h × 40px/hr
+                const nowPx = (Date.now() - dayStartMs) * pxPerMs;
+
+                // Hour marks + labels
+                let hourMarks = '';
+                for (let h = 0; h <= 24; h++) {
+                    const x = h * 40;
+                    const label = h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`;
+                    hourMarks += `<div class="tl-hour-mark" style="left:${x}px"></div>`;
+                    if (h % 3 === 0) {
+                        hourMarks += `<span class="tl-hour-label" style="left:${x}px">${label}</span>`;
                     }
+                }
+
+                // Completed session blocks
+                let sessionBlocks = '';
+                const todayLogs = logs.filter(l => {
+                    const ms = parseDateToMs(l.completedAt);
+                    return ms && isSameDay(new Date(ms), now);
+                });
+                todayLogs.forEach(l => {
+                    const endMs = parseDateToMs(l.completedAt);
+                    if (!endMs) return;
+                    const startMs = endMs - (l.durationSeconds || 0) * 1000;
+                    const left = Math.max(0, (startMs - dayStartMs) * pxPerMs);
+                    const width = Math.max(4, (l.durationSeconds || 0) * 1000 * pxPerMs);
+                    const mins = Math.round((l.durationSeconds || 0) / 60);
+                    sessionBlocks += `<div class="tl-session-block" style="left:${left}px;width:${width}px" title="${(l.title || 'Work Session').replace(/"/g,'&quot;')} · ${mins}m" onclick="openEditModal('${l.id}')"></div>`;
                 });
 
+                // Active session block (in-progress timer)
                 if (state.timerIsRunning || state.isTimerSessionActive) {
                     const elapsed = (state.timerTotalSeconds || 0) - (state.timerRemainingSeconds || 0);
                     if (elapsed > 0) {
-                        const end = Date.now();
-                        const start = end - elapsed * 1000;
-                        intervals.push({ start, end });
+                        const endMs = Date.now();
+                        const startMs = endMs - elapsed * 1000;
+                        const left = Math.max(0, (startMs - dayStartMs) * pxPerMs);
+                        const width = Math.max(6, elapsed * 1000 * pxPerMs);
+                        sessionBlocks += `<div class="tl-session-block active-session" style="left:${left}px;width:${width}px" title="In progress · ${Math.round(elapsed / 60)}m"></div>`;
                     }
                 }
 
-                const hourStats = [];
-                let maxHourSecs = 1800;
-                for (let h = 0; h < 24; h++) {
-                    const hStart = new Date(startOfDay.getTime() + h * 3600 * 1000).getTime();
-                    const hEnd = hStart + 3600 * 1000;
-                    let overlapSecs = 0;
-                    intervals.forEach(inv => {
-                        const s = Math.max(hStart, inv.start);
-                        const e = Math.min(hEnd, inv.end);
-                        if (e > s) overlapSecs += (e - s) / 1000;
-                    });
-                    const secsClamped = Math.min(3600, Math.round(overlapSecs));
-                    if (secsClamped > maxHourSecs) maxHourSecs = secsClamped;
-                    hourStats.push({ hour: h, secs: secsClamped, isCurrent: h === currentHour });
-                }
+                // Current-time indicator
+                const nowLine = `<div class="tl-now-line" style="left:${Math.min(958, nowPx)}px"></div>`;
 
+                const nowHourStr = String(now.getHours()).padStart(2, '0');
+                const nowMinStr = String(now.getMinutes()).padStart(2, '0');
                 chartBox.innerHTML = `
                     <div class="timeline-card-inner">
                         <div class="timeline-header-row">
-                            <span class="timeline-title">24-HOUR ACTIVITY</span>
-                            <span class="timeline-legend">Now: ${currentHour}:00</span>
+                            <span class="timeline-title">TODAY'S TIMELINE</span>
+                            <span class="timeline-legend">${nowHourStr}:${nowMinStr}</span>
                         </div>
-                        <div class="timeline-bars-container">
-                            ${hourStats.map(stat => {
-                                const fillH = stat.secs > 0 ? Math.max(3.5, Math.round((stat.secs / maxHourSecs) * 44)) : (stat.isCurrent && state.timerIsRunning ? 4 : 0);
-                                return `
-                                    <div class="timeline-bar-col">
-                                        <div class="timeline-bar-track ${stat.isCurrent ? 'current' : ''}">
-                                            <div class="timeline-bar-fill ${stat.isCurrent ? 'current' : ''}" style="height: ${fillH}px;"></div>
-                                        </div>
-                                        <div class="timeline-dot ${stat.isCurrent ? 'current' : ''}"></div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                        <div class="timeline-axis-labels">
-                            <span>12a</span>
-                            <span>6a</span>
-                            <span>12p</span>
-                            <span>6p</span>
-                            <span>12a</span>
+                        <div class="timeline-strip-scroll" id="tlScroll">
+                            <div class="timeline-strip">
+                                ${hourMarks}
+                                ${sessionBlocks}
+                                ${nowLine}
+                            </div>
                         </div>
                     </div>
                 `;
+                // Auto-scroll so current time is visible with some left context
+                requestAnimationFrame(() => {
+                    const sc = document.getElementById('tlScroll');
+                    if (sc) sc.scrollLeft = Math.max(0, nowPx - 120);
+                });
             }
 
             // Task Breakdown
@@ -1896,14 +2043,15 @@
             // Recent Sessions
             const sessionsList = document.getElementById('sessionsList');
             if (logs.length > 0) {
-                sessionsList.innerHTML = logs.slice(0, 10).map(l => `
+                sessionsList.innerHTML = logs.slice(0, 20).map(l => `
                     <div class="session-card">
-                        <div class="session-info">
+                        <div class="session-info" onclick="openEditModal('${l.id}')" style="cursor:pointer;flex:1;">
                             <span class="session-title">${l.title || 'Work Session'}</span>
                             <span class="session-time">${formatSessionDate(l.completedAt)}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span class="session-duration-pill">${formatReadableDuration(l.durationSeconds)}</span>
+                            <button class="icon-btn" onclick="openEditModal('${l.id}')">✎</button>
                             <button class="icon-btn" onclick="deleteWorkLog('${l.id}')">✕</button>
                         </div>
                     </div>
