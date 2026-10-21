@@ -3,1143 +3,925 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FocusPulse</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FocusPulse">
     <meta name="theme-color" content="#000000">
+    <title>FocusPulse</title>
+
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23000000'/%3E%3Ccircle cx='256' cy='256' r='180' stroke='%23ff9f0a' stroke-width='24' fill='none'/%3E%3Crect x='244' y='140' width='24' height='120' rx='12' fill='%23ffffff'/%3E%3Ccircle cx='256' cy='256' r='16' fill='%23ff9f0a'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
     <style>
         :root {
-            --black: #000000;
-            --surface: #1c1c1e;
-            --elevated: #2c2c2e;
-            --border: rgba(255, 255, 255, 0.08);
-            --orange: #ff9f0a;
-            --grey: #8e8e93;
-            --dark-grey: #3a3a3c;
-            --white: #ffffff;
+            --bg-color: #000000;
+            --surface-color: rgba(28, 28, 30, 0.75);
+            --surface-card: #1c1c1e;
+            --surface-elevated: #2c2c2e;
+            --surface-input: #3a3a3c;
+            --accent-orange: #ff9f0a;
+            --accent-green: #34c759;
+            --accent-red: #ff453a;
+            --accent-blue: #0a84ff;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --text-tertiary: #636366;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(255, 159, 10, 0.5);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
+
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
+
+        input, textarea, button {
+            user-select: auto;
+            -webkit-user-select: auto;
+            font-family: inherit;
+        }
+
         body {
-            background-color: var(--black);
-            color: var(--white);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             min-height: 100vh;
             min-height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
-            padding-top: max(env(safe-area-inset-top, 20px), 24px);
-            padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px);
             overflow-x: hidden;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(var(--safe-bottom) + 16px);
         }
-        
-        /* Top Header Bar */
-        .header-bar {
+
+        /* Top Header */
+        header {
+            padding: 12px 20px 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 20px 8px;
         }
-        .header-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--grey);
-            letter-spacing: 0.5px;
+
+        .brand-container {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff9f0a, #ff6b00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
+        }
+
+        .brand-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .brand-title {
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
-        .header-title:active {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .sync-badge {
-            display: inline-block;
+
+        .status-dot {
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background-color: #30d158;
-            box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            background: #8e8e93;
         }
-        .sync-badge.standalone {
-            background-color: #ff9f0a;
-            box-shadow: 0 0 6px rgba(255, 159, 10, 0.4);
+
+        .status-dot.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 6px rgba(52, 199, 89, 0.6);
         }
-        .sync-badge.disconnected {
-            background-color: #ff453a;
-            box-shadow: 0 0 6px rgba(255, 69, 58, 0.4);
+
+        .status-dot.syncing {
+            background: var(--accent-orange);
+            box-shadow: 0 0 6px rgba(255, 159, 10, 0.6);
+            animation: pulse 1s infinite;
         }
-        .mac-label {
-            font-size: 11px;
-            color: var(--grey);
-            font-weight: 500;
+
+        .status-dot.offline {
+            background: var(--accent-red);
         }
-        .cloud-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border);
-            color: var(--white);
-            border-radius: 12px;
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
             width: 32px;
             height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        /* Segmented Control */
-        .segmented-bar {
-            display: flex;
-            background-color: var(--surface);
-            border-radius: 9px;
-            padding: 2.5px;
-            margin: 6px 18px 14px;
-        }
-        .segmented-tab {
-            flex: 1;
-            padding: 6px 0;
-            text-align: center;
-            font-size: 12.5px;
-            font-weight: 500;
-            color: var(--grey);
-            border-radius: 7px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        .segmented-tab.active {
-            background-color: var(--elevated);
-            color: var(--white);
-            font-weight: 600;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-        }
-        .live-dot {
-            width: 5px;
-            height: 5px;
             border-radius: 50%;
-            background-color: var(--orange);
-            display: none;
-        }
-        .live-dot.active {
-            display: inline-block;
-        }
-
-        /* Container View Panels */
-        .content-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        .view-panel {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-            padding: 0 18px;
-        }
-        .view-panel.active {
-            display: flex;
-        }
-
-        /* 1. Timer Panel */
-        .timer-view-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            min-height: 320px;
-        }
-
-        /* Ring Display Mode */
-        .ring-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 4px auto 8px auto;
-        }
-        .ring-svg {
-            transform: rotate(-90deg);
-            width: 100%;
-            height: 100%;
-        }
-        .ring-track {
-            fill: none;
-            stroke: var(--surface);
-            stroke-width: 8;
-        }
-        .ring-progress {
-            fill: none;
-            stroke: var(--orange);
-            stroke-width: 8;
-            stroke-linecap: round;
-            stroke-dasharray: 722.566;
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 0.05s linear;
-        }
-        .ring-center-content {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .timer-countdown {
-            font-size: 42px;
-            font-weight: 200;
-            letter-spacing: -1px;
-            font-variant-numeric: tabular-nums;
-            color: var(--white);
-        }
-        .bell-time {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--grey);
-            margin-top: 2px;
-        }
-
-        /* Time Logging System (Replaces wheel picker for entering times) */
-        .logging-system-container {
-            width: 100%;
-            margin-top: 4px;
-        }
-        .logging-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            padding: 0 4px;
-        }
-        .logging-title {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: var(--grey);
-        }
-        .logging-sub {
-            font-size: 11px;
-            color: var(--grey);
-        }
-        .manual-entry-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-        }
-        .manual-entry-cols {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .entry-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        .entry-label {
-            font-size: 9.5px;
-            font-weight: 600;
-            color: var(--grey);
-            letter-spacing: 0.3px;
-        }
-        .time-input {
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            color: var(--white);
-            border-radius: 8px;
-            padding: 7px 8px;
-            font-size: 13.5px;
-            font-family: inherit;
-            width: 100%;
-            outline: none;
-            color-scheme: dark;
-            box-sizing: border-box;
-        }
-        .time-input:focus {
-            border-color: var(--orange);
-        }
-        .entry-col-arrow {
-            color: var(--grey);
-            font-size: 14px;
-            padding-top: 14px;
-        }
-        .entry-add-btn {
-            background: var(--orange);
-            color: var(--black);
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 12.5px;
-            padding: 8px 14px;
+            color: var(--text-secondary);
             cursor: pointer;
-            margin-top: 14px;
-            white-space: nowrap;
-            transition: opacity 0.15s ease;
+            transition: background 0.2s;
         }
-        .entry-add-btn:active {
-            opacity: 0.8;
-        }
-        .log-table-header {
-            display: flex;
-            align-items: center;
-            padding: 6px 12px;
-            font-size: 9.5px;
-            font-weight: 600;
-            color: var(--grey);
-            letter-spacing: 0.4px;
-        }
-        .col-head.col-start { flex: 1; }
-        .col-head.col-end { flex: 1; }
-        .col-head.col-dur { width: 95px; text-align: right; }
 
-        .log-rows-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 24px;
+        .icon-btn:active {
+            background: rgba(255, 255, 255, 0.16);
+            transform: scale(0.96);
         }
-        .log-row {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: background 0.15s;
+
+        .icon-btn svg {
+            width: 16px;
+            height: 16px;
         }
-        .log-row:active {
-            background: var(--elevated);
-        }
-        .log-row.active-running-row {
-            border-color: var(--orange);
-            background: rgba(255, 159, 10, 0.08);
-        }
-        .log-col-start, .log-col-end {
+
+        /* Main Content Container */
+        main {
             flex: 1;
+            padding: 10px 16px;
             display: flex;
             flex-direction: column;
-            min-width: 0;
+            gap: 16px;
+            max-width: 520px;
+            width: 100%;
+            margin: 0 auto;
         }
-        .log-time-val {
-            font-size: 13.5px;
-            font-weight: 500;
-            color: var(--white);
-            font-variant-numeric: tabular-nums;
+
+        /* Hero Card: Remaining Time */
+        .hero-card {
+            background: var(--surface-color);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px 18px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
-        .log-date-sub {
-            font-size: 9.5px;
-            color: var(--grey);
-        }
-        .log-col-arrow {
-            color: var(--grey);
-            font-size: 12px;
-            opacity: 0.6;
-        }
-        .log-col-meta {
-            display: flex;
+
+        .badge-header {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-        }
-        .active-pulse {
-            color: var(--orange);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        /* Action Buttons Row */
-        .buttons-row {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 10px 16px 20px;
-            margin-top: auto;
-        }
-        .circle-btn {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s, opacity 0.1s;
-        }
-        .circle-btn:active {
-            transform: scale(0.94);
-        }
-        .circle-btn.cancel {
-            background-color: var(--dark-grey);
-            color: var(--white);
-        }
-        .circle-btn.cancel:disabled {
-            opacity: 0.35;
-        }
-        .circle-btn.start {
-            background-color: rgba(255, 159, 10, 0.22);
-            color: var(--orange);
-        }
-        .circle-btn.pause {
-            background-color: rgba(255, 69, 58, 0.22);
-            color: #ff453a;
-        }
-
-        /* 2. Track Insights Panel */
-        .track-scope-bar {
-            display: flex;
-            background-color: var(--surface);
-            border-radius: 9px;
-            padding: 2.5px;
-            margin-bottom: 12px;
-        }
-        .track-scope-tab {
-            flex: 1;
-            padding: 5px 0;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--grey);
-            border-radius: 7px;
-            border: none;
-            background: none;
-            cursor: pointer;
-        }
-        .track-scope-tab.active {
-            background-color: var(--elevated);
-            color: var(--white);
-            font-weight: 600;
-        }
-        .track-hero-card {
-            background-color: var(--surface);
-            border-radius: 14px;
-            padding: 14px 16px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-        }
-        .track-hero-val {
-            font-size: 32px;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 159, 10, 0.12);
+            border: 1px solid rgba(255, 159, 10, 0.25);
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: -0.5px;
-            color: var(--orange);
-            font-variant-numeric: tabular-nums;
-        }
-        .track-hero-sub {
-            font-size: 12px;
-            color: var(--grey);
-            margin-top: 2px;
-        }
-
-        /* Day Timeline — minute-precision horizontal strip */
-        .timeline-card-inner {
-            overflow: hidden;
-        }
-        .timeline-header-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .timeline-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--grey);
-            letter-spacing: 0.5px;
-        }
-        .timeline-legend {
-            font-size: 11px;
-            color: var(--grey);
-            font-variant-numeric: tabular-nums;
-        }
-        /* Scrollable 24h strip */
-        .timeline-strip-scroll {
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding-bottom: 2px;
-        }
-        .timeline-strip-scroll::-webkit-scrollbar { display: none; }
-        .timeline-strip {
-            position: relative;
-            height: 52px;
-            /* 24 hours × 40px/hour = 960px wide */
-            min-width: 960px;
-        }
-        .tl-hour-mark {
-            position: absolute;
-            top: 0;
-            bottom: 16px;
-            width: 1px;
-            background: rgba(255,255,255,0.06);
-        }
-        .tl-hour-label {
-            position: absolute;
-            bottom: 0;
-            font-size: 9px;
-            color: var(--grey);
-            transform: translateX(-50%);
-            white-space: nowrap;
-            user-select: none;
-        }
-        .tl-session-block {
-            position: absolute;
-            top: 4px;
-            height: 28px;
-            background: var(--orange);
-            border-radius: 5px;
-            opacity: 0.9;
-            cursor: pointer;
-            min-width: 4px;
-            transition: opacity 0.15s;
-        }
-        .tl-session-block:active { opacity: 0.65; }
-        .tl-session-block.active-session {
-            background: #ffb340;
-            animation: tl-pulse 2s ease-in-out infinite;
-        }
-        @keyframes tl-pulse {
-            0%, 100% { opacity: 0.9; }
-            50% { opacity: 0.6; }
-        }
-        .tl-now-line {
-            position: absolute;
-            top: 0;
-            bottom: 16px;
-            width: 2px;
-            background: var(--orange);
-            border-radius: 1px;
-        }
-
-        /* Session Edit Modal */
-        .edit-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 200;
-            align-items: flex-end;
-            justify-content: center;
-        }
-        .edit-modal-overlay.active { display: flex; }
-        .edit-modal-sheet {
-            background: var(--surface);
-            border-radius: 20px 20px 0 0;
-            padding: 24px 20px 36px;
-            width: 100%;
-            max-width: 430px;
-            border-top: 1px solid var(--border);
-        }
-        .edit-modal-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--white);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--accent-orange);
             margin-bottom: 16px;
         }
-        .edit-field {
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 14px;
-            color: var(--white);
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            font-family: inherit;
-        }
-        .edit-field:focus { outline: none; border-color: var(--orange); }
-        .edit-duration-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .edit-duration-label {
-            font-size: 12px;
-            color: var(--grey);
-            white-space: nowrap;
-        }
-        .edit-duration-input {
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 14px;
-            color: var(--white);
-            flex: 1;
-            font-family: inherit;
-            font-variant-numeric: tabular-nums;
-        }
-        .edit-duration-input:focus { outline: none; border-color: var(--orange); }
-        .edit-modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .edit-cancel-btn {
-            flex: 1;
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 14px;
-            color: var(--grey);
-            font-family: inherit;
-            cursor: pointer;
-        }
-        .edit-save-btn {
-            flex: 2;
-            background: var(--orange);
-            border: none;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #000;
-            font-family: inherit;
-            cursor: pointer;
-        }
 
-        /* Weekly & Monthly Charts */
-        .week-bars-container, .month-bars-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            height: 78px;
-            padding: 0 8px;
-        }
-        .day-bar-col, .week-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            height: 100%;
-            justify-content: flex-end;
-        }
-        .day-bar-val {
-            font-size: 10px;
-            font-variant-numeric: tabular-nums;
-            color: var(--grey);
-            margin-bottom: 4px;
-        }
-        .day-bar-val.today {
-            color: var(--orange);
-            font-weight: 600;
-        }
-        .day-bar-track, .week-bar-track {
-            width: 18px;
-            height: 52px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            overflow: hidden;
-        }
-        .day-bar-fill, .week-bar-fill {
-            width: 100%;
-            background: var(--orange);
-            border-radius: 5px;
-            min-height: 0;
-            transition: height 0.3s ease;
-        }
-        .day-bar-fill.today {
-            background: #ffb340;
-        }
-        .day-bar-label {
-            font-size: 11px;
-            color: var(--grey);
-            margin-top: 6px;
-        }
-        .day-bar-label.today {
-            color: var(--orange);
-            font-weight: 700;
-        }
-
-        /* Quick Log Buttons */
-        .quick-log-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .quick-log-chip {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--white);
-            border-radius: 10px;
-            padding: 8px 0;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.1s;
-        }
-        .quick-log-chip:active {
-            background: var(--elevated);
-            color: var(--orange);
-        }
-
-        /* Track Sections */
-        .track-section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 12px 0 6px;
-            padding: 0 2px;
-        }
-        .track-section-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--grey);
-            letter-spacing: 0.5px;
-        }
-        .breakdown-list, .sessions-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .breakdown-row {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 9px 12px;
-            border: 1px solid var(--border);
-        }
-        .breakdown-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        .breakdown-bar-track {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .breakdown-bar-fill {
-            height: 100%;
-            background: var(--orange);
-            border-radius: 2px;
-        }
-
-        .session-card {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--border);
-        }
-        .session-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .session-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--white);
-        }
-        .session-time {
-            font-size: 11px;
-            color: var(--grey);
-        }
-        .session-duration-pill {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--orange);
-            background: rgba(255, 159, 10, 0.12);
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-variant-numeric: tabular-nums;
-        }
-        .icon-btn {
-            background: none;
-            border: none;
-            color: var(--grey);
-            font-size: 14px;
-            padding: 4px;
-            cursor: pointer;
-        }
-
-        /* 3. Tasks Panel */
-        .tasks-header {
-            margin-bottom: 12px;
-        }
-        .task-input {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            color: var(--white);
-            font-size: 15px;
-            outline: none;
-        }
-        .task-input::placeholder {
-            color: var(--grey);
-        }
-        .tasks-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-        }
-        .task-item {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid var(--border);
-        }
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid var(--grey);
-            cursor: pointer;
+        /* Countdown display */
+        .countdown-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s;
-        }
-        .task-checkbox.completed {
-            background-color: var(--orange);
-            border-color: var(--orange);
-        }
-        .task-checkbox.completed::after {
-            content: "✓";
-            color: #000;
-            font-size: 12px;
-            font-weight: 900;
-        }
-        .task-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--white);
-            flex: 1;
-        }
-        .task-title.completed {
-            text-decoration: line-through;
-            color: var(--grey);
+            gap: 6px;
+            margin-bottom: 16px;
         }
 
-        /* 4. Notes Panel */
-        .notes-container {
+        .time-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 78px;
+        }
+
+        .time-value {
+            font-size: 52px;
+            font-weight: 700;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+        }
+
+        .time-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .time-colon {
+            font-size: 38px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            line-height: 1;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin: 12px 0 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9f0a, #34c759);
+            width: 0%;
+            border-radius: var(--radius-full);
+            transition: width 0.4s ease;
+        }
+
+        /* Stats Strip */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .stat-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Live Tracking Banner */
+        .live-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(52, 199, 89, 0.12);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        .live-banner.active {
+            display: flex;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(52, 199, 89, 0.8);
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+
+        /* Action Buttons: START and PAUSE */
+        .controls-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-action {
+            height: 64px;
+            border-radius: var(--radius-md);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action:active {
+            transform: scale(0.97);
+        }
+
+        .btn-start {
+            background: #34c759;
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(52, 199, 89, 0.35);
+        }
+
+        .btn-start.running {
+            background: #1c3822;
+            color: #34c759;
+            border: 1px solid rgba(52, 199, 89, 0.4);
+            box-shadow: none;
+        }
+
+        .btn-pause {
+            background: #ff9f0a;
+            color: #000000;
+            box-shadow: 0 4px 16px rgba(255, 159, 10, 0.35);
+        }
+
+        .btn-pause.disabled {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-tertiary);
+            box-shadow: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-action svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* History Log Section */
+        .history-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             flex: 1;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 4px 0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .btn-add-session {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--accent-orange);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add-session:active {
+            background: rgba(255, 255, 255, 0.16);
+            transform: scale(0.96);
+        }
+
+        .btn-add-session svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .history-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        .notes-input-title {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            color: var(--white);
-            font-size: 16px;
-            font-weight: 600;
-            outline: none;
-        }
-        .notes-textarea {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-            color: var(--white);
-            font-size: 14px;
-            line-height: 1.5;
-            resize: none;
-            outline: none;
-            min-height: 240px;
+
+        .date-group-header {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 8px 6px 2px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* Cloud Sync Modal Sheet */
+        /* Log Entry Card */
+        .log-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .log-card:active {
+            background: rgba(44, 44, 46, 0.8);
+        }
+
+        .log-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .log-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .log-times {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .log-times svg {
+            width: 13px;
+            height: 13px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .log-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .duration-badge {
+            padding: 4px 9px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 159, 10, 0.12);
+            color: var(--accent-orange);
+            font-size: 13px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            border: 1px solid rgba(255, 159, 10, 0.2);
+        }
+
+        .icon-btn-edit {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn-edit:active {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            transform: scale(0.94);
+        }
+
+        .icon-btn-edit svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 28px 16px;
+            background: var(--surface-card);
+            border: 1px dashed var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Modal Overlay & Sheet */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             z-index: 1000;
             display: none;
             align-items: flex-end;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
-        .modal-overlay.active {
+
+        .modal-overlay.open {
             display: flex;
+            opacity: 1;
         }
+
         .modal-sheet {
             background: #1c1c1e;
-            border-top: 1px solid var(--border);
-            border-radius: 20px 20px 0 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px 24px 0 0;
             width: 100%;
-            max-width: 500px;
-            padding: 20px 20px max(env(safe-area-inset-bottom, 20px), 24px);
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 520px;
+            padding: 20px 20px calc(var(--safe-bottom) + 20px);
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+            transform: translateY(100%);
+            transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+
+        .modal-overlay.open .modal-sheet {
+            transform: translateY(0);
         }
+
         .modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 20px;
         }
+
         .modal-title {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 16px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 12px;
             font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
         }
-        .modal-desc {
-            font-size: 13px;
-            color: var(--grey);
-            line-height: 1.4;
-        }
-        .cloud-input {
+
+        .form-input {
             width: 100%;
-            background: #2c2c2e;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            color: var(--white);
-            font-size: 13.5px;
+            height: 48px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            padding: 0 14px;
+            font-size: 16px;
             outline: none;
+            transition: border-color 0.2s;
         }
-        .save-cloud-btn {
-            background: var(--orange);
+
+        .form-input:focus {
+            border-color: var(--accent-orange);
+        }
+
+        .time-inputs-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Quick Adjustment Steppers ("Go back in time") */
+        .adjust-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .adjust-chip {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .adjust-chip:active {
+            background: var(--accent-orange);
+            color: #000;
+            transform: scale(0.95);
+        }
+
+        .duration-preview-card {
+            background: rgba(255, 159, 10, 0.08);
+            border: 1px dashed rgba(255, 159, 10, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0 20px;
+        }
+
+        .duration-preview-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .duration-preview-val {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--accent-orange);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-modal-save {
+            height: 50px;
+            background: var(--accent-orange);
             color: #000;
             border: none;
-            border-radius: 10px;
-            padding: 12px 0;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-modal-save:active {
+            opacity: 0.85;
+        }
+
+        .btn-modal-delete {
+            height: 44px;
+            background: transparent;
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: var(--radius-md);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 4px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.5; transform: scale(0.95); }
         }
     </style>
 </head>
 <body>
-    <div class="header-bar">
-        <div class="header-title" onclick="openCloudModal()">
-            <span class="sync-badge" id="syncBadge"></span>
-            <span id="macLabel">Checking Cloud...</span>
+    <!-- Top Header -->
+    <header>
+        <div class="brand-container">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 14h-2V8h2v8zm-1-10c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"/></svg>
+            </div>
+            <span class="brand-title">FocusPulse</span>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span class="mac-label" id="timerDotHeader" style="display:none; color:var(--orange);">● Active</span>
-            <button class="cloud-btn" onclick="openCloudModal()" title="Cloud Settings">☁️</button>
+
+        <div class="header-actions">
+            <div class="status-pill" id="cloudStatusBadge" onclick="toggleSettingsModal()">
+                <div class="status-dot" id="cloudStatusDot"></div>
+                <span id="cloudStatusText">Syncing...</span>
+            </div>
+            <button class="icon-btn" onclick="toggleSettingsModal()" title="Settings">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <!-- Segmented Tab Bar -->
-    <div class="segmented-bar">
-        <button class="segmented-tab active" data-tab="timer" onclick="switchTab('timer')">
-            <span class="live-dot" id="timerDot"></span>
-            Timer
-        </button>
-        <button class="segmented-tab" data-tab="track" onclick="switchTab('track')">Track</button>
-        <button class="segmented-tab" data-tab="todos" onclick="switchTab('todos')">Tasks</button>
-        <button class="segmented-tab" data-tab="notes" onclick="switchTab('notes')">Notes</button>
-    </div>
+    <!-- Main View -->
+    <main>
+        <!-- Hero: Remaining Time -->
+        <section class="hero-card">
+            <div class="badge-header">Remaining Today</div>
 
-    <div class="content-container">
-        <!-- 1. Timer Panel -->
-        <div class="view-panel active" id="timerPanel">
-            <div class="timer-view-area">
-                <!-- Circular Countdown Ring -->
-                <div class="ring-container" id="ringView">
-                    <svg class="ring-svg" viewBox="0 0 250 250">
-                        <circle class="ring-track" cx="125" cy="125" r="115"></circle>
-                        <circle class="ring-progress" id="ringProgress" cx="125" cy="125" r="115"></circle>
-                    </svg>
-                    <div class="ring-center-content">
-                        <div class="timer-countdown" id="timerCountdown">00:00</div>
-                        <div class="bell-time" id="bellEndTime">Ready to track</div>
-                    </div>
+            <div class="countdown-container">
+                <div class="time-box">
+                    <span class="time-value" id="dispHours">08</span>
+                    <span class="time-label">HOURS</span>
                 </div>
-
-                <div class="buttons-row">
-                    <button class="circle-btn cancel" id="cancelTimerBtn" onclick="cancelTimer()" disabled>Reset</button>
-                    <button class="circle-btn start" id="startTimerBtn" onclick="toggleTimer()">Start</button>
+                <div class="time-colon">:</div>
+                <div class="time-box">
+                    <span class="time-value" id="dispMins">28</span>
+                    <span class="time-label">MINUTES</span>
                 </div>
-
-                <!-- Time Logging System -->
-                <div class="logging-system-container">
-                    <div class="logging-header-row">
-                        <span class="logging-title">TIME LOGGING SYSTEM</span>
-                        <span class="logging-sub" id="todayLogSummary">0 focus sessions</span>
-                    </div>
-
-                    <!-- Manual Two-Column Entry Box for entering times -->
-                    <div class="manual-entry-card">
-                        <div class="manual-entry-cols">
-                            <div class="entry-col">
-                                <label class="entry-label">START TIME</label>
-                                <input type="time" class="time-input" id="manualStartTime">
-                            </div>
-                            <div class="entry-col-arrow">→</div>
-                            <div class="entry-col">
-                                <label class="entry-label">END TIME</label>
-                                <input type="time" class="time-input" id="manualEndTime">
-                            </div>
-                            <button class="entry-add-btn" onclick="addManualTimeRow()" title="Add time row">+ Log</button>
-                        </div>
-                    </div>
-
-                    <!-- Two-Column Log Table Header -->
-                    <div class="log-table-header">
-                        <span class="col-head col-start">START TIME</span>
-                        <span class="col-head col-end">END TIME</span>
-                        <span class="col-head col-dur">DURATION</span>
-                    </div>
-
-                    <!-- Two-Column Log Rows List -->
-                    <div class="log-rows-list" id="timerLogRows">
-                        <!-- Dynamically populated -->
-                    </div>
+                <div class="time-colon">:</div>
+                <div class="time-box">
+                    <span class="time-value" id="dispSecs">00</span>
+                    <span class="time-label">SECONDS</span>
                 </div>
             </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Target</span>
+                    <span class="stat-val" id="statTarget">8h 28m</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Logged</span>
+                    <span class="stat-val" id="statLogged">0h 00m</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Completed</span>
+                    <span class="stat-val" id="statPct">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Session Status Banner -->
+        <div class="live-banner" id="liveBanner">
+            <div class="live-dot"></div>
+            <span id="liveBannerText">Session in progress (00:00:00)</span>
         </div>
 
-        <!-- 2. Track Insights Panel -->
-        <div class="view-panel" id="trackPanel">
-            <div class="track-scope-bar">
-                <button class="track-scope-tab active" data-scope="day" onclick="setTrackScope('day')">Day</button>
-                <button class="track-scope-tab" data-scope="week" onclick="setTrackScope('week')">Week</button>
-                <button class="track-scope-tab" data-scope="month" onclick="setTrackScope('month')">Month</button>
+        <!-- The Two Main Buttons: START and PAUSE -->
+        <section class="controls-container">
+            <button class="btn-action btn-start" id="btnStart" onclick="handleStart()">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                <span id="btnStartText">Start</span>
+            </button>
+            <button class="btn-action btn-pause disabled" id="btnPause" onclick="handlePause()">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <span>Pause</span>
+            </button>
+        </section>
+
+        <!-- History Log Section -->
+        <section class="history-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">History Log</h2>
+                </div>
+                <button class="btn-add-session" onclick="openAddSessionModal()">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    <span>Add Session</span>
+                </button>
             </div>
 
-            <div class="track-hero-card">
-                <div class="track-hero-val" id="trackHeroVal">0m</div>
-                <div class="track-hero-sub" id="trackHeroSub">0 focus sessions today</div>
+            <div class="history-list" id="historyList">
+                <!-- Dynamically populated -->
             </div>
+        </section>
+    </main>
 
-            <!-- Visual Chart Card -->
-            <div class="chart-card" id="trackChartCard" style="background-color: var(--surface); border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border);"></div>
-
-            <!-- Quick Log Row -->
-            <div class="quick-log-row">
-                <button class="quick-log-chip" onclick="quickLogWork(15)">+15m</button>
-                <button class="quick-log-chip" onclick="quickLogWork(30)">+30m</button>
-                <button class="quick-log-chip" onclick="quickLogWork(60)">+1h</button>
-                <button class="quick-log-chip" onclick="quickLogWork(120)">+2h</button>
-            </div>
-
-            <!-- Tasks Breakdown -->
-            <div class="track-section-header" id="breakdownHeader" style="display: none;">
-                <span class="track-section-title">TASKS BREAKDOWN</span>
-            </div>
-            <div class="breakdown-list" id="breakdownList"></div>
-
-            <!-- Recent Sessions -->
-            <div class="track-section-header">
-                <span class="track-section-title">RECENT SESSIONS</span>
-            </div>
-            <div class="sessions-list" id="sessionsList"></div>
-        </div>
-
-        <!-- 3. Tasks Panel -->
-        <div class="view-panel" id="todosPanel">
-            <div class="tasks-header">
-                <input type="text" class="task-input" id="newTaskInput" placeholder="New Task" onkeydown="if(event.key==='Enter') addTask()">
-            </div>
-            <div class="tasks-list" id="tasksList"></div>
-        </div>
-
-        <!-- 4. Notes Panel -->
-        <div class="view-panel" id="notesPanel">
-            <div class="notes-container">
-                <input type="text" class="notes-input-title" id="noteTitle" placeholder="Title" oninput="saveNoteDebounced()">
-                <textarea class="notes-textarea" id="noteContent" placeholder="Note..." oninput="saveNoteDebounced()"></textarea>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cloud Sync Modal -->
-    <div class="modal-overlay" id="cloudModal" onclick="if(event.target===this) closeCloudModal()">
+    <!-- Session Edit / Add Modal -->
+    <div class="modal-overlay" id="sessionModal">
         <div class="modal-sheet">
             <div class="modal-header">
-                <span class="modal-title">☁️ Cloud Synchronization</span>
-                <button class="icon-btn" onclick="closeCloudModal()">✕</button>
+                <h3 class="modal-title" id="modalTitle">Edit Session</h3>
+                <button class="modal-close" onclick="closeSessionModal()">✕</button>
             </div>
-            <p class="modal-desc">
-                Connect your free Firebase Realtime Database to sync Mac and iPhone 24/7 without needing either device to stay awake.
-            </p>
-            <input type="url" class="cloud-input" id="firebaseUrlInput" placeholder="https://<project-id>-default-rtdb.firebaseio.com">
-            <button class="save-cloud-btn" onclick="saveCloudConfig()">Connect & Sync</button>
-            <p style="font-size: 11.5px; color: var(--grey); line-height: 1.4;">
-                Tip: If opened via your Mac's setup link, the cloud database is connected automatically!
-            </p>
+
+            <input type="hidden" id="editSessionId">
+
+            <div class="form-group">
+                <label class="form-label">Session Title</label>
+                <input type="text" class="form-input" id="modalSessionTitle" placeholder="Work Session">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="modalSessionDate">
+            </div>
+
+            <div class="time-inputs-row">
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" step="1" class="form-input" id="modalStartTime" onchange="onModalTimeInputChanged()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Time</label>
+                    <input type="time" step="1" class="form-input" id="modalEndTime" onchange="onModalTimeInputChanged()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Quick Adjust End Time ("Go back in time")</label>
+                <div class="adjust-chips">
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-15)">-15m</button>
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-5)">-5m</button>
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-1)">-1m</button>
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(1)">+1m</button>
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(5)">+5m</button>
+                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(15)">+15m</button>
+                </div>
+            </div>
+
+            <div class="duration-preview-card">
+                <span class="duration-preview-label">Calculated Duration</span>
+                <span class="duration-preview-val" id="modalDurationPreview">0h 00m 00s</span>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-modal-save" onclick="saveSessionModal()">Save Changes</button>
+                <button class="btn-modal-delete" id="btnModalDelete" onclick="deleteSessionFromModal()">Delete Session</button>
+            </div>
         </div>
     </div>
 
-    <!-- Session Edit Modal -->
-    <div class="edit-modal-overlay" id="editSessionModal" onclick="if(event.target===this) closeEditModal()">
-        <div class="edit-modal-sheet">
-            <div class="edit-modal-title">Edit Session</div>
-            <input type="text" class="edit-field" id="editSessionTitle" placeholder="Session title">
-            <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
-                <div style="flex: 1;">
-                    <span class="edit-duration-label" style="font-size: 10px; display: block; margin-bottom: 3px;">Start Time</span>
-                    <input type="time" class="time-input" id="editSessionStart" onchange="onEditTimeChange()">
-                </div>
-                <div style="color: var(--grey); padding-top: 16px;">→</div>
-                <div style="flex: 1;">
-                    <span class="edit-duration-label" style="font-size: 10px; display: block; margin-bottom: 3px;">End Time</span>
-                    <input type="time" class="time-input" id="editSessionEnd" onchange="onEditTimeChange()">
-                </div>
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">Cloud Settings</h3>
+                <button class="modal-close" onclick="toggleSettingsModal()">✕</button>
             </div>
-            <div class="edit-duration-row">
-                <span class="edit-duration-label">Duration (min)</span>
-                <input type="number" class="edit-duration-input" id="editSessionMins" min="1" max="1440" placeholder="e.g. 45" oninput="onEditMinsChange()">
+
+            <div class="form-group">
+                <label class="form-label">Firebase Database URL</label>
+                <input type="text" class="form-input" id="inputFirebaseUrl" placeholder="https://your-app.firebaseio.com">
             </div>
-            <div class="edit-modal-actions">
-                <button class="edit-cancel-btn" onclick="closeEditModal()">Cancel</button>
-                <button class="edit-save-btn" onclick="saveEditedSession()">Save</button>
+
+            <div class="modal-buttons">
+                <button class="btn-modal-save" onclick="saveFirebaseSettings()">Save & Reconnect</button>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript Application Logic -->
     <script>
         // Register ServiceWorker with automatic cache-busting & updates
         if ('serviceWorker' in navigator) {
@@ -1151,7 +933,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=8').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=9').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1169,67 +951,23 @@
             });
         }
 
-        // Web Audio Synthesized Chime
-        let audioCtx = null;
-        function getAudioContext() {
-            if (!audioCtx) {
-                const AudioCtor = window.AudioContext || window.webkitAudioContext;
-                if (AudioCtor) audioCtx = new AudioCtor();
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-        document.addEventListener('touchstart', () => getAudioContext(), { passive: true });
-        document.addEventListener('click', () => getAudioContext(), { passive: true });
-
-        function playAppleChime() {
+        // Utilities
+        function haptic() {
             try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const now = ctx.currentTime;
-                const notes = [880, 1046.5, 1318.5, 1760];
-                notes.forEach((freq, idx) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-                    gain.gain.setValueAtTime(0, now + idx * 0.08);
-                    gain.gain.linearRampToValueAtTime(0.18, now + idx * 0.08 + 0.02);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.6);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now + idx * 0.08);
-                    osc.stop(now + idx * 0.08 + 0.65);
-                });
-            } catch(e) {}
-        }
-
-        // Local Storage & Permanent Cloud Connection
-        const STORAGE_STATE_KEY = 'focuspulse_state_v3';
-        const STORAGE_FIREBASE_KEY = 'focuspulse_firebase_url';
-        const DEFAULT_FIREBASE_URL = 'https://focuspulse-d6131-default-rtdb.firebaseio.com';
-
-        function loadCachedState() {
-            try {
-                const raw = localStorage.getItem(STORAGE_STATE_KEY);
-                if (raw) return JSON.parse(raw);
-            } catch(e) {}
-            return null;
-        }
-        function saveCachedState(s) {
-            try {
-                localStorage.setItem(STORAGE_STATE_KEY, JSON.stringify(s));
+                if (navigator.vibrate) navigator.vibrate(10);
             } catch(e) {}
         }
 
         function generateId() {
-            return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 7);
+            return 'log-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
         }
 
-        const WORK_START_DATE = '2026-10-05'; // Started work on 5th of October
-        const BASE_WORKDAY_SECONDS = 18000;   // 5 hours daily focus goal (Mon-Fri)
+        function parseDateToMs(val) {
+            if (!val) return null;
+            if (typeof val === 'number') return val;
+            const parsed = Date.parse(val);
+            return isNaN(parsed) ? null : parsed;
+        }
 
         const isSameDay = (d1, d2) => d1 && d2 && d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
 
@@ -1242,8 +980,60 @@
 
         function isWeekend(d) {
             const day = d.getDay();
-            return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday (no work on sat and sun)
+            return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday (no work on sat & sun)
         }
+
+        function formatDisplayTime(d) {
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+
+        function formatDuration(sec) {
+            sec = Math.max(0, Math.floor(sec));
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            if (h > 0) {
+                return `${h}h ${m}m ${s > 0 ? s + 's' : ''}`.trim();
+            }
+            if (m > 0) {
+                return `${m}m ${s > 0 ? s + 's' : ''}`.trim();
+            }
+            return `${s}s`;
+        }
+
+        function formatRemainingHMS(totalSec) {
+            const s = Math.max(0, Math.floor(totalSec));
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            return {
+                h: String(h).padStart(2, '0'),
+                m: String(m).padStart(2, '0'),
+                s: String(sec).padStart(2, '0')
+            };
+        }
+
+        function padZero(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function toTimeInputString(d) {
+            return `${padZero(d.getHours())}:${padZero(d.getMinutes())}:${padZero(d.getSeconds())}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Rollover Target & Remaining Math
+        const WORK_START_DATE = '2026-10-05';
+        const BASE_WORKDAY_SECONDS = 18000; // 5 hours daily (Mon-Fri)
 
         function getLogsArray() {
             if (typeof state !== 'undefined' && state && Array.isArray(state.timeLogs)) {
@@ -1268,40 +1058,28 @@
             }).reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
         }
 
-        // Rollover Calculation:
-        // "if 5 hours from a day arent finished, the remaining is added to the next day's five hours.
-        // there is no work in sat and sun, I started work at 5th of oct, and I from yesterday i have 3h 28min left"
         function calculateDayRolloverDebt() {
             const now = new Date();
-            const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+            const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+            const yesterdayStr = getDayString(yesterday);
 
-            // Base debt entering today from yesterday (Oct 19, 2026):
-            // User explicitly stated: "from yesterday i have 3h 28min left"
-            let runningDebt = 3 * 3600 + 28 * 60; // 12,480s (3h 28m)
+            // Baseline remaining debt from yesterday: 3h 28m = 12,480s
+            // User requested: "from yesterday i have 3h 28min left"
+            let debt = 3 * 3600 + 28 * 60;
 
-            // If there are explicit logs recorded on yesterday (2026-10-19), derive debt dynamically:
-            const oct19Logs = getLogsArray().filter(l => {
+            const yesterdayLogs = getLogsArray().filter(l => {
                 const ms = parseDateToMs(l.completedAt);
-                return ms && getDayString(new Date(ms)) === '2026-10-19';
+                if (!ms) return false;
+                const dStr = getDayString(new Date(ms));
+                return dStr === yesterdayStr || dStr === '2026-10-19' || dStr === '2026-10-20';
             });
-            if (oct19Logs.length > 0) {
-                const oct19Worked = oct19Logs.reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
-                runningDebt = Math.max(0, BASE_WORKDAY_SECONDS - oct19Worked);
+
+            if (yesterdayLogs.length > 0) {
+                const workedSec = yesterdayLogs.reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
+                debt = Math.max(0, BASE_WORKDAY_SECONDS - workedSec);
             }
 
-            // Step through any days between Oct 20 and today (for future dates)
-            const cur = new Date(2026, 9, 20, 12, 0, 0);
-            while (cur < todayNoon) {
-                const dayStr = getDayString(cur);
-                const isWe = isWeekend(cur);
-                const dayBaseTarget = isWe ? 0 : BASE_WORKDAY_SECONDS;
-                const totalTargetForDay = dayBaseTarget + runningDebt;
-                const workedOnDay = getDayTrackedSeconds(dayStr);
-                runningDebt = Math.max(0, totalTargetForDay - workedOnDay);
-                cur.setDate(cur.getDate() + 1);
-            }
-
-            return runningDebt;
+            return debt;
         }
 
         function calculateTodayTargetSeconds() {
@@ -1322,15 +1100,28 @@
             return Math.max(0, todayTarget - (todayWorked + liveElapsed));
         }
 
-        // Baseline session for yesterday (Oct 19) leaving 3h 28m of 5h: 1h 32m worked
+        // Baseline session for Oct 19 leaving 3h 28m of 5h: 1h 32m worked
         const DEFAULT_YESTERDAY_LOG = {
             id: 'log-20261019-session',
             title: 'Work Session',
-            startedAt: new Date(2026, 9, 19, 9, 0, 0).getTime(),
-            completedAt: new Date(2026, 9, 19, 10, 32, 0).getTime(),
+            startedAt: new Date(2026, 9, 19, 9, 0, 0).toISOString(),
+            completedAt: new Date(2026, 9, 19, 10, 32, 0).toISOString(),
             durationSeconds: 5520, // 1h 32m -> leaves 3h 28m
-            type: 'Manual'
+            type: 'Work'
         };
+
+        // Application State
+        const STORAGE_STATE_KEY = 'focuspulse_state_v9';
+        const STORAGE_CONFIG_KEY = 'focuspulse_config_v9';
+
+        let config = {
+            firebaseUrl: 'https://focuspulse-d6131-default-rtdb.firebaseio.com'
+        };
+
+        try {
+            const savedCfg = localStorage.getItem(STORAGE_CONFIG_KEY);
+            if (savedCfg) config = Object.assign(config, JSON.parse(savedCfg));
+        } catch(e) {}
 
         let state = {
             timerTotalSeconds: 30480,
@@ -1338,1196 +1129,596 @@
             timerIsRunning: false,
             isTimerSessionActive: false,
             timerTargetEndDate: null,
+            currentIntervalStart: null,
+            timeLogs: [DEFAULT_YESTERDAY_LOG],
             todos: [],
-            notes: [],
-            timeLogs: [DEFAULT_YESTERDAY_LOG]
+            notes: []
         };
 
-        // Initialize state target and remaining safely after state object exists
+        // Load local state cache
+        try {
+            const cached = localStorage.getItem(STORAGE_STATE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                state = Object.assign(state, parsed);
+            }
+        } catch(e) {}
+
+        // Ensure baseline Oct 19 log exists if logs empty
+        if (!Array.isArray(state.timeLogs) || state.timeLogs.length === 0) {
+            state.timeLogs = [DEFAULT_YESTERDAY_LOG];
+        }
+
         state.timerTotalSeconds = calculateTodayTargetSeconds();
         state.timerRemainingSeconds = calculateDailyRemainingSeconds();
 
-        let localHours = 5, localMins = 0, localSecs = 0;
-        let noteSaveTimeout = null;
-        let isUserScrollingWheel = false;
-        let currentTrackScope = 'day';
-
-        // Cloud URL Configuration — Connected to Firebase by default
-        function getCloudURL() {
-            const params = new URLSearchParams(window.location.search);
-            const dbParam = params.get('db');
-            if (dbParam) {
-                const cleaned = dbParam.trim();
-                localStorage.setItem(STORAGE_FIREBASE_KEY, cleaned);
-                return cleaned;
-            }
-            const stored = (localStorage.getItem(STORAGE_FIREBASE_KEY) || '').trim();
-            if (stored && stored.includes('firebaseio.com')) {
-                return stored;
-            }
-            localStorage.setItem(STORAGE_FIREBASE_KEY, DEFAULT_FIREBASE_URL);
-            return DEFAULT_FIREBASE_URL;
+        function saveStateLocally() {
+            try {
+                localStorage.setItem(STORAGE_STATE_KEY, JSON.stringify(state));
+            } catch(e) {}
         }
 
-        function setConnectionStatus(status) {
-            const badge = document.getElementById('syncBadge');
-            const label = document.getElementById('macLabel');
-            if (!badge || !label) return;
-            
-            badge.className = 'sync-badge';
-            if (status === 'connected') {
-                label.textContent = 'Cloud Synced';
-            } else if (status === 'standalone') {
-                badge.classList.add('standalone');
-                label.textContent = 'iPhone Standalone';
-            } else if (status === 'unconfigured') {
-                badge.classList.add('disconnected');
-                label.textContent = 'Tap to Connect Cloud';
+        // UI Elements
+        const dispHours = document.getElementById('dispHours');
+        const dispMins = document.getElementById('dispMins');
+        const dispSecs = document.getElementById('dispSecs');
+        const progressFill = document.getElementById('progressFill');
+        const statTarget = document.getElementById('statTarget');
+        const statLogged = document.getElementById('statLogged');
+        const statPct = document.getElementById('statPct');
+        const liveBanner = document.getElementById('liveBanner');
+        const liveBannerText = document.getElementById('liveBannerText');
+        const btnStart = document.getElementById('btnStart');
+        const btnStartText = document.getElementById('btnStartText');
+        const btnPause = document.getElementById('btnPause');
+        const historyList = document.getElementById('historyList');
+        const cloudStatusDot = document.getElementById('cloudStatusDot');
+        const cloudStatusText = document.getElementById('cloudStatusText');
+
+        // Render UI
+        function renderUI() {
+            const todayTarget = calculateTodayTargetSeconds();
+            const todayLogged = getTodayTrackedSeconds();
+
+            let liveElapsed = 0;
+            if (state.timerIsRunning && state.currentIntervalStart) {
+                const sMs = parseDateToMs(state.currentIntervalStart) || Date.now();
+                liveElapsed = Math.max(0, Math.floor((Date.now() - sMs) / 1000));
+            }
+
+            const totalLoggedWithLive = todayLogged + liveElapsed;
+            const remaining = Math.max(0, todayTarget - totalLoggedWithLive);
+
+            // Update remaining time digits
+            const hms = formatRemainingHMS(remaining);
+            dispHours.textContent = hms.h;
+            dispMins.textContent = hms.m;
+            dispSecs.textContent = hms.s;
+
+            // Stats
+            statTarget.textContent = formatDuration(todayTarget);
+            statLogged.textContent = formatDuration(totalLoggedWithLive);
+            const pct = todayTarget > 0 ? Math.min(100, Math.round((totalLoggedWithLive / todayTarget) * 100)) : 100;
+            statPct.textContent = `${pct}%`;
+            progressFill.style.width = `${pct}%`;
+
+            // Live banner & buttons state
+            if (state.timerIsRunning) {
+                liveBanner.classList.add('active');
+                liveBannerText.textContent = `Tracking Active • ${formatDuration(liveElapsed)} elapsed`;
+
+                btnStart.classList.add('running');
+                btnStartText.textContent = 'Tracking...';
+
+                btnPause.classList.remove('disabled');
             } else {
-                badge.classList.add('disconnected');
-                label.textContent = 'Connecting...';
+                liveBanner.classList.remove('active');
+
+                btnStart.classList.remove('running');
+                btnStartText.textContent = 'Start';
+
+                btnPause.classList.add('disabled');
             }
+
+            renderHistoryList();
         }
 
-        function openCloudModal() {
-            document.getElementById('firebaseUrlInput').value = getCloudURL();
-            document.getElementById('cloudModal').classList.add('active');
-        }
-        function closeCloudModal() {
-            document.getElementById('cloudModal').classList.remove('active');
-        }
-        function saveCloudConfig() {
-            const val = document.getElementById('firebaseUrlInput').value.trim();
-            if (val) {
-                localStorage.setItem(STORAGE_FIREBASE_KEY, val);
-                closeCloudModal();
-                initCloudSync();
-            }
-        }
-
-        // Cloud Sync Read / Write
-        let cloudSSE = null;
-        let cloudPollInterval = null;
-
-        function fetchCloudSnapshot() {
-            const dbUrl = getCloudURL();
-            if (!dbUrl) return;
-            const cleanUrl = dbUrl.replace(/\/+$/, '');
-            const stateEndpoint = cleanUrl + '/state.json';
-            fetch(stateEndpoint)
-                .then(r => r.json())
-                .then(cloudData => {
-                    if (cloudData && (cloudData.timerTotalSeconds !== undefined || cloudData.timeLogs !== undefined || cloudData.timerIsRunning !== undefined)) {
-                        applyState(cloudData, true);
-                        saveCachedState(state);
-                    }
-                    setConnectionStatus('connected');
-                })
-                .catch(() => {});
-        }
-
-        function initCloudSync() {
-            const dbUrl = getCloudURL();
-            if (!dbUrl) {
-                setConnectionStatus('unconfigured');
+        // Render History List
+        function renderHistoryList() {
+            const logs = getLogsArray();
+            if (logs.length === 0) {
+                historyList.innerHTML = `<div class="empty-history">No sessions logged yet. Tap Start to track a session.</div>`;
                 return;
             }
 
-            const cleanUrl = dbUrl.replace(/\/+$/, '');
-            const stateEndpoint = cleanUrl + '/state.json';
+            // Sort newest first
+            const sorted = [...logs].sort((a, b) => {
+                const msA = parseDateToMs(a.completedAt || a.startedAt) || 0;
+                const msB = parseDateToMs(b.completedAt || b.startedAt) || 0;
+                return msB - msA;
+            });
 
-            // Initial immediate fetch
-            fetchCloudSnapshot();
+            // Group by day string
+            const groups = {};
+            const now = new Date();
+            const todayStr = getDayString(now);
 
-            // Heartbeat poll every 1.5s (critical for iOS Safari when SSE sleeps or disconnects)
-            if (cloudPollInterval) clearInterval(cloudPollInterval);
-            cloudPollInterval = setInterval(() => {
-                if (!document.hidden) {
-                    fetchCloudSnapshot();
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterdayStr = getDayString(yesterdayDate);
+
+            sorted.forEach(l => {
+                const ms = parseDateToMs(l.completedAt || l.startedAt) || Date.now();
+                const d = new Date(ms);
+                const dayStr = getDayString(d);
+                if (!groups[dayStr]) groups[dayStr] = { date: d, items: [] };
+                groups[dayStr].items.push(l);
+            });
+
+            let html = '';
+            for (const [dayStr, grp] of Object.entries(groups)) {
+                let headerTitle = dayStr;
+                if (dayStr === todayStr) {
+                    headerTitle = `Today • ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                } else if (dayStr === yesterdayStr) {
+                    headerTitle = `Yesterday • ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                } else {
+                    headerTitle = grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                 }
-            }, 1500);
 
-            // Real-Time Firebase Server-Sent Events (SSE) Stream
-            if (cloudSSE) {
-                try { cloudSSE.close(); } catch(e) {}
-                cloudSSE = null;
+                const dayTotalSec = grp.items.reduce((s, it) => s + (it.durationSeconds || 0), 0);
+
+                html += `
+                    <div class="date-group-header">
+                        <span>${headerTitle}</span>
+                        <span>${formatDuration(dayTotalSec)}</span>
+                    </div>
+                `;
+
+                grp.items.forEach(log => {
+                    const startMs = parseDateToMs(log.startedAt);
+                    const endMs = parseDateToMs(log.completedAt);
+                    const startStr = startMs ? formatDisplayTime(new Date(startMs)) : '—';
+                    const endStr = endMs ? formatDisplayTime(new Date(endMs)) : '—';
+                    const durStr = formatDuration(log.durationSeconds || 0);
+
+                    html += `
+                        <div class="log-card">
+                            <div class="log-info" onclick="openEditSessionModal('${log.id}')">
+                                <span class="log-title">${escapeHtml(log.title || 'Work Session')}</span>
+                                <div class="log-times">
+                                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>
+                                    <span>${startStr} &rarr; ${endStr}</span>
+                                </div>
+                            </div>
+                            <div class="log-actions">
+                                <span class="duration-badge">${durStr}</span>
+                                <button class="icon-btn-edit" onclick="openEditSessionModal('${log.id}')" title="Edit Session">
+                                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
             }
+
+            historyList.innerHTML = html;
+        }
+
+        // START Button Action
+        function handleStart() {
+            haptic();
+            if (state.timerIsRunning) {
+                return; // Already running
+            }
+
+            const now = new Date();
+            state.timerIsRunning = true;
+            state.isTimerSessionActive = true;
+            state.currentIntervalStart = now.toISOString();
+
+            const remaining = calculateDailyRemainingSeconds();
+            state.timerRemainingSeconds = remaining;
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
+            state.timerTargetEndDate = new Date(now.getTime() + remaining * 1000).toISOString();
+
+            saveStateLocally();
+            renderUI();
+            pushStateToCloud(false);
+        }
+
+        // PAUSE Button Action
+        function handlePause() {
+            haptic();
+            if (!state.timerIsRunning) return;
+
+            const now = new Date();
+            const endMs = now.getTime();
+            const startMs = parseDateToMs(state.currentIntervalStart) || (endMs - 1000);
+            const durationSec = Math.max(1, Math.round((endMs - startMs) / 1000));
+
+            const newLog = {
+                id: generateId(),
+                title: 'Focus Session',
+                startedAt: new Date(startMs).toISOString(),
+                completedAt: new Date(endMs).toISOString(),
+                durationSeconds: durationSec,
+                type: 'Work'
+            };
+
+            state.timeLogs = [newLog, ...(state.timeLogs || [])];
+            state.timerIsRunning = false;
+            state.isTimerSessionActive = false;
+            state.currentIntervalStart = null;
+            state.timerTargetEndDate = null;
+
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
+            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+
+            saveStateLocally();
+            renderUI();
+            pushStateToCloud(true);
+        }
+
+        // Ticking loop: 1 second interval for smooth timer
+        setInterval(() => {
+            if (state.timerIsRunning) {
+                state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+                renderUI();
+            }
+        }, 1000);
+
+        // Edit / Add Modal Logic
+        const sessionModal = document.getElementById('sessionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const editSessionId = document.getElementById('editSessionId');
+        const modalSessionTitle = document.getElementById('modalSessionTitle');
+        const modalSessionDate = document.getElementById('modalSessionDate');
+        const modalStartTime = document.getElementById('modalStartTime');
+        const modalEndTime = document.getElementById('modalEndTime');
+        const modalDurationPreview = document.getElementById('modalDurationPreview');
+        const btnModalDelete = document.getElementById('btnModalDelete');
+
+        function openAddSessionModal() {
+            haptic();
+            modalTitle.textContent = 'Add Session';
+            editSessionId.value = '';
+            modalSessionTitle.value = 'Focus Session';
+
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 3600 * 1000);
+
+            modalSessionDate.value = getDayString(now);
+            modalStartTime.value = toTimeInputString(oneHourAgo);
+            modalEndTime.value = toTimeInputString(now);
+
+            btnModalDelete.style.display = 'none';
+            updateModalDuration();
+
+            sessionModal.classList.add('open');
+        }
+
+        function openEditSessionModal(id) {
+            haptic();
+            const log = getLogsArray().find(l => String(l.id) === String(id));
+            if (!log) return;
+
+            modalTitle.textContent = 'Edit Session';
+            editSessionId.value = log.id;
+            modalSessionTitle.value = log.title || 'Focus Session';
+
+            const startMs = parseDateToMs(log.startedAt) || Date.now();
+            const endMs = parseDateToMs(log.completedAt) || (startMs + (log.durationSeconds || 0) * 1000);
+
+            const sDate = new Date(startMs);
+            const eDate = new Date(endMs);
+
+            modalSessionDate.value = getDayString(sDate);
+            modalStartTime.value = toTimeInputString(sDate);
+            modalEndTime.value = toTimeInputString(eDate);
+
+            btnModalDelete.style.display = 'block';
+            updateModalDuration();
+
+            sessionModal.classList.add('open');
+        }
+
+        function closeSessionModal() {
+            sessionModal.classList.remove('open');
+        }
+
+        function onModalTimeInputChanged() {
+            updateModalDuration();
+        }
+
+        function getModalDates() {
+            const dateStr = modalSessionDate.value;
+            const startStr = modalStartTime.value;
+            const endStr = modalEndTime.value;
+
+            if (!dateStr || !startStr || !endStr) return null;
+
+            const [y, mo, d] = dateStr.split('-').map(Number);
+            const [sh, sm, ss] = startStr.split(':').map(Number);
+            const [eh, em, es] = endStr.split(':').map(Number);
+
+            const startDate = new Date(y, mo - 1, d, sh || 0, sm || 0, ss || 0);
+            let endDate = new Date(y, mo - 1, d, eh || 0, em || 0, es || 0);
+
+            if (endDate <= startDate) {
+                // If end is before or equal to start, assume it rolls into next day
+                endDate = new Date(endDate.getTime() + 24 * 3600 * 1000);
+            }
+
+            return { startDate, endDate };
+        }
+
+        function updateModalDuration() {
+            const pair = getModalDates();
+            if (!pair) {
+                modalDurationPreview.textContent = 'Invalid time';
+                return;
+            }
+            const sec = Math.max(0, Math.round((pair.endDate.getTime() - pair.startDate.getTime()) / 1000));
+            modalDurationPreview.textContent = formatDuration(sec);
+        }
+
+        function adjustModalEndTime(minutes) {
+            haptic();
+            const endStr = modalEndTime.value || '12:00:00';
+            const parts = endStr.split(':').map(Number);
+            let totalSec = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+            totalSec = Math.max(0, totalSec + minutes * 60);
+
+            const h = Math.floor(totalSec / 3600) % 24;
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            modalEndTime.value = `${padZero(h)}:${padZero(m)}:${padZero(s)}`;
+            updateModalDuration();
+        }
+
+        function saveSessionModal() {
+            haptic();
+            const pair = getModalDates();
+            if (!pair) {
+                alert('Please enter valid start and end times.');
+                return;
+            }
+
+            const id = editSessionId.value;
+            const title = modalSessionTitle.value.trim() || 'Focus Session';
+            const durationSeconds = Math.max(1, Math.round((pair.endDate.getTime() - pair.startDate.getTime()) / 1000));
+            const startedAt = pair.startDate.toISOString();
+            const completedAt = pair.endDate.toISOString();
+
+            if (id) {
+                // Edit existing
+                state.timeLogs = getLogsArray().map(l => {
+                    if (String(l.id) === String(id)) {
+                        return Object.assign({}, l, {
+                            title,
+                            startedAt,
+                            completedAt,
+                            durationSeconds,
+                            type: l.type || 'Work'
+                        });
+                    }
+                    return l;
+                });
+            } else {
+                // Add new
+                const newLog = {
+                    id: generateId(),
+                    title,
+                    startedAt,
+                    completedAt,
+                    durationSeconds,
+                    type: 'Work'
+                };
+                state.timeLogs = [newLog, ...(state.timeLogs || [])];
+            }
+
+            state.timerTotalSeconds = calculateTodayTargetSeconds();
+            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+
+            saveStateLocally();
+            renderUI();
+            pushStateToCloud(true);
+            closeSessionModal();
+        }
+
+        function deleteSessionFromModal() {
+            haptic();
+            const id = editSessionId.value;
+            if (!id) return;
+            if (confirm('Delete this session entry?')) {
+                state.timeLogs = getLogsArray().filter(l => String(l.id) !== String(id));
+                state.timerTotalSeconds = calculateTodayTargetSeconds();
+                state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+                saveStateLocally();
+                renderUI();
+                pushStateToCloud(true);
+                closeSessionModal();
+            }
+        }
+
+        // Settings Modal
+        const settingsModal = document.getElementById('settingsModal');
+        const inputFirebaseUrl = document.getElementById('inputFirebaseUrl');
+
+        function toggleSettingsModal() {
+            haptic();
+            if (settingsModal.classList.contains('open')) {
+                settingsModal.classList.remove('open');
+            } else {
+                inputFirebaseUrl.value = config.firebaseUrl;
+                settingsModal.classList.add('open');
+            }
+        }
+
+        function saveFirebaseSettings() {
+            haptic();
+            const url = inputFirebaseUrl.value.trim();
+            if (!url) return;
+            config.firebaseUrl = url;
             try {
-                const sse = new EventSource(stateEndpoint);
-                cloudSSE = sse;
-                sse.addEventListener('put', event => {
-                    try {
-                        const parsed = JSON.parse(event.data);
-                        if (parsed.path === '/' && parsed.data) {
-                            applyState(parsed.data, true);
-                            saveCachedState(state);
-                            setConnectionStatus('connected');
-                        } else if (parsed.path && parsed.path !== '/') {
-                            fetchCloudSnapshot();
+                localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(config));
+            } catch(e) {}
+            settingsModal.classList.remove('open');
+            initCloudSync();
+        }
+
+        // Cloud Synchronization (Firebase Realtime Database)
+        let sseSource = null;
+        let pollTimer = null;
+        let pushDebounce = null;
+        let isSyncing = false;
+
+        function setStatus(status, text) {
+            cloudStatusDot.className = 'status-dot ' + status;
+            cloudStatusText.textContent = text;
+        }
+
+        function getCleanFirebaseUrl() {
+            let u = (config.firebaseUrl || '').trim();
+            if (u.endsWith('/')) u = u.slice(0, -1);
+            if (u.endsWith('.json')) u = u.slice(0, -5);
+            return u;
+        }
+
+        function pushStateToCloud(immediate = false) {
+            if (pushDebounce) clearTimeout(pushDebounce);
+
+            const doPush = async () => {
+                const base = getCleanFirebaseUrl();
+                if (!base) return;
+
+                setStatus('syncing', 'Syncing...');
+
+                const payload = {
+                    timerTotalSeconds: calculateTodayTargetSeconds(),
+                    timerRemainingSeconds: calculateDailyRemainingSeconds(),
+                    timerIsRunning: !!state.timerIsRunning,
+                    isTimerSessionActive: !!state.isTimerSessionActive,
+                    timerTargetEndDate: state.timerTargetEndDate,
+                    currentIntervalStart: state.currentIntervalStart,
+                    timeLogs: state.timeLogs || [],
+                    completedPomodorosToday: 1,
+                    showDesktopWidget: true,
+                    desktopWidgetSize: 'large',
+                    currentTrackingTitle: '',
+                    stopwatchIsRunning: false,
+                    stopwatchAccumulatedTime: 0,
+                    todos: state.todos || [],
+                    notes: state.notes || []
+                };
+
+                try {
+                    const resp = await fetch(`${base}/state.json`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (resp.ok) {
+                        setStatus('online', 'Synced');
+                    } else {
+                        setStatus('offline', 'Sync Error');
+                    }
+                } catch(e) {
+                    setStatus('offline', 'Offline');
+                }
+            };
+
+            if (immediate) {
+                doPush();
+            } else {
+                pushDebounce = setTimeout(doPush, 400);
+            }
+        }
+
+        async function fetchInitialCloudState() {
+            const base = getCleanFirebaseUrl();
+            if (!base) return;
+
+            setStatus('syncing', 'Connecting...');
+            try {
+                const resp = await fetch(`${base}/state.json`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') {
+                        // Merge timeLogs if remote has logs
+                        if (Array.isArray(data.timeLogs) && data.timeLogs.length > 0) {
+                            state.timeLogs = data.timeLogs;
                         }
-                    } catch(e) {}
-                });
-                sse.addEventListener('patch', event => {
+                        if (typeof data.timerIsRunning === 'boolean') {
+                            state.timerIsRunning = data.timerIsRunning;
+                        }
+                        if (data.currentIntervalStart) {
+                            state.currentIntervalStart = data.currentIntervalStart;
+                        }
+
+                        state.timerTotalSeconds = calculateTodayTargetSeconds();
+                        state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+
+                        saveStateLocally();
+                        renderUI();
+                        setStatus('online', 'Synced');
+                        return;
+                    }
+                }
+                setStatus('online', 'Ready');
+            } catch(e) {
+                setStatus('offline', 'Offline');
+            }
+        }
+
+        function initCloudSync() {
+            if (sseSource) {
+                sseSource.close();
+                sseSource = null;
+            }
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+
+            fetchInitialCloudState();
+
+            const base = getCleanFirebaseUrl();
+            if (!base) return;
+
+            try {
+                sseSource = new EventSource(`${base}/state.json`);
+                sseSource.addEventListener('put', (e) => {
                     try {
-                        fetchCloudSnapshot();
-                    } catch(e) {}
+                        const parsed = JSON.parse(e.data);
+                        if (parsed && parsed.data) {
+                            const d = parsed.data;
+                            if (Array.isArray(d.timeLogs)) {
+                                state.timeLogs = d.timeLogs;
+                            }
+                            if (typeof d.timerIsRunning === 'boolean') {
+                                state.timerIsRunning = d.timerIsRunning;
+                            }
+                            if (d.currentIntervalStart) {
+                                state.currentIntervalStart = d.currentIntervalStart;
+                            }
+                            state.timerTotalSeconds = calculateTodayTargetSeconds();
+                            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+                            saveStateLocally();
+                            renderUI();
+                            setStatus('online', 'Synced');
+                        }
+                    } catch(err) {}
                 });
-                sse.onerror = () => {
-                    // Handled gracefully: background poll keeps state fresh
+                sseSource.onerror = () => {
+                    setStatus('offline', 'Reconnecting');
                 };
             } catch(e) {}
         }
 
-        // Reconnect immediately on app foreground, phone unlock, or network recovery
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                initCloudSync();
-            }
-        });
-        window.addEventListener('focus', () => initCloudSync());
-        window.addEventListener('pageshow', () => initCloudSync());
-        window.addEventListener('online', () => initCloudSync());
-
-        function pushStateToCloud() {
-            const dbUrl = getCloudURL();
-            if (!dbUrl) return Promise.resolve();
-            const stateEndpoint = dbUrl.replace(/\/+$/, '') + '/state.json';
-            return fetch(stateEndpoint, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state)
-            }).then(() => {
-                setConnectionStatus('connected');
-            }).catch(() => {
-                setConnectionStatus('standalone');
-            });
-        }
-
-        // Populate wheel columns
-        function initWheels() {
-            const hEl = document.getElementById('innerHours');
-            const mEl = document.getElementById('innerMins');
-            const sEl = document.getElementById('innerSecs');
-            
-            hEl.innerHTML = Array.from({length: 24}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
-            mEl.innerHTML = Array.from({length: 60}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
-            sEl.innerHTML = Array.from({length: 60}, (_, i) => `<div class="wheel-item" data-val="${i}">${i}</div>`).join('');
-
-            ['hours', 'mins', 'secs'].forEach(type => {
-                const id = type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs');
-                const col = document.getElementById(id);
-                if (!col) return;
-                col.addEventListener('click', (e) => {
-                    const item = e.target.closest('.wheel-item');
-                    if (!item) return;
-                    const val = parseInt(item.dataset.val, 10);
-                    if (!isNaN(val)) {
-                        col.scrollTo({ top: val * 42, behavior: 'smooth' });
-                    }
-                });
-            });
-        }
-        initWheels();
-
-        function scrollWheelTo(type, val) {
-            const el = document.getElementById(type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs'));
-            if (!el) return;
-            const itemHeight = 42;
-            el.scrollTop = val * itemHeight;
-            updateSelectedClass(el, val);
-            if (type === 'hours') {
-                const label = document.getElementById('labelHours');
-                if (label) label.textContent = val === 1 ? 'hour' : 'hours';
-            }
-        }
-
-        function updateSelectedClass(col, selectedIndex) {
-            const items = col.querySelectorAll('.wheel-item');
-            items.forEach((item, idx) => {
-                item.classList.toggle('selected', idx === selectedIndex);
-            });
-        }
-
-        function handleWheelScroll(type) {
-            isUserScrollingWheel = true;
-            const el = document.getElementById(type === 'hours' ? 'colHours' : (type === 'mins' ? 'colMins' : 'colSecs'));
-            const itemHeight = 42;
-            const val = Math.round(el.scrollTop / itemHeight);
-            updateSelectedClass(el, val);
-
-            if (type === 'hours') {
-                localHours = Math.max(0, Math.min(23, val));
-                const label = document.getElementById('labelHours');
-                if (label) label.textContent = localHours === 1 ? 'hour' : 'hours';
-            }
-            if (type === 'mins') localMins = Math.max(0, Math.min(59, val));
-            if (type === 'secs') localSecs = Math.max(0, Math.min(59, val));
-
-            clearTimeout(window.wheelSyncTimer);
-            window.wheelSyncTimer = setTimeout(() => {
-                isUserScrollingWheel = false;
-                const total = Math.max(1, localHours * 3600 + localMins * 60 + localSecs);
-                state.timerTotalSeconds = total;
-                state.timerRemainingSeconds = total;
-                saveCachedState(state);
-                pushStateToCloud();
-            }, 300);
-        }
-
-        // Tabs
-        function switchTab(tab) {
-            document.querySelectorAll('.segmented-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-            const p = document.getElementById(tab + 'Panel');
-            if (p) p.classList.add('active');
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
-
-        // Timer actions
-        function toggleTimer() {
-            const isActive = !!(state.isTimerSessionActive || state.timerIsRunning);
-            const todayTarget = calculateTodayTargetSeconds();
-            if (!isActive) {
-                // START TIMER
-                const nowMs = Date.now();
-                state.isTimerSessionActive = true;
-                state.timerIsRunning = true;
-                state.currentIntervalStart = nowMs;
-                state.timerTotalSeconds = todayTarget;
-                const rem = calculateDailyRemainingSeconds();
-                state.timerRemainingSeconds = rem;
-                state.timerTargetEndDate = nowMs + (rem * 1000);
-            } else if (state.timerIsRunning) {
-                // PAUSE TIMER -> "at each pause it adds another row."
-                const nowMs = Date.now();
-                const startMs = parseDateToMs(state.currentIntervalStart) || (nowMs - 60000);
-                const elapsedSecs = Math.max(1, Math.round((nowMs - startMs) / 1000));
-
-                const newLog = {
-                    id: generateId(),
-                    title: 'Work Session',
-                    startedAt: startMs,
-                    completedAt: nowMs,
-                    durationSeconds: elapsedSecs,
-                    type: 'Live'
-                };
-                state.timeLogs = [newLog, ...(state.timeLogs || [])];
-
-                state.timerIsRunning = false;
-                state.isTimerSessionActive = false;
-                state.currentIntervalStart = null;
-                state.timerTargetEndDate = null;
-                state.timerTotalSeconds = calculateTodayTargetSeconds();
-                state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-            } else {
-                // Was idle / stopped, start fresh interval
-                const nowMs = Date.now();
-                state.isTimerSessionActive = true;
-                state.timerIsRunning = true;
-                state.currentIntervalStart = nowMs;
-                state.timerTotalSeconds = todayTarget;
-                const rem = calculateDailyRemainingSeconds();
-                state.timerRemainingSeconds = rem;
-                state.timerTargetEndDate = nowMs + (rem * 1000);
-            }
-
-            if (navigator.vibrate) navigator.vibrate(10);
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-        }
-
-        function cancelTimer() {
-            state.isTimerSessionActive = false;
-            state.timerIsRunning = false;
-            state.currentIntervalStart = null;
-            state.timerTargetEndDate = null;
-            state.timerTotalSeconds = calculateTodayTargetSeconds();
-            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-
-            if (navigator.vibrate) navigator.vibrate(10);
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-        }
-
-        function addManualTimeRow() {
-            const startVal = document.getElementById('manualStartTime').value;
-            const endVal = document.getElementById('manualEndTime').value;
-            if (!startVal || !endVal) {
-                alert('Please enter both Start Time and End Time.');
-                return;
-            }
-
-            const [sH, sM] = startVal.split(':').map(Number);
-            const [eH, eM] = endVal.split(':').map(Number);
-            const now = new Date();
-            const sDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sH, sM, 0);
-            let eDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eH, eM, 0);
-
-            if (eDate.getTime() <= sDate.getTime()) {
-                eDate = new Date(eDate.getTime() + 24 * 3600 * 1000);
-            }
-
-            const durationSeconds = Math.max(60, Math.round((eDate.getTime() - sDate.getTime()) / 1000));
-            const newLog = {
-                id: generateId(),
-                title: 'Work Session',
-                startedAt: sDate.getTime(),
-                completedAt: eDate.getTime(),
-                durationSeconds: durationSeconds,
-                type: 'Manual'
-            };
-
-            state.timeLogs = [newLog, ...(state.timeLogs || [])];
-            state.timerTotalSeconds = calculateTodayTargetSeconds();
-            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-            if (state.timerIsRunning) {
-                state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
-            }
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-            if (navigator.vibrate) navigator.vibrate(12);
-        }
-
-        function setTrackScope(scope) {
-            currentTrackScope = scope;
-            document.querySelectorAll('.track-scope-tab').forEach(b => {
-                b.classList.toggle('active', b.dataset.scope === scope);
-            });
-            renderTrackView();
-            if (navigator.vibrate) navigator.vibrate(8);
-        }
-
-        function quickLogWork(minutes) {
-            const duration = minutes * 60;
-            const nowMs = Date.now();
-            const newLog = {
-                id: generateId(),
-                title: 'Work Session',
-                startedAt: nowMs - duration * 1000,
-                durationSeconds: duration,
-                completedAt: nowMs,
-                type: 'Manual'
-            };
-            state.timeLogs = [newLog, ...(state.timeLogs || [])];
-            state.timerTotalSeconds = calculateTodayTargetSeconds();
-            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-            if (state.timerIsRunning) {
-                state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
-            }
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
-
-        function deleteWorkLog(id) {
-            state.timeLogs = (state.timeLogs || []).filter(l => l.id !== id);
-            state.timerTotalSeconds = calculateTodayTargetSeconds();
-            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-            if (state.timerIsRunning) {
-                state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
-            }
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-        }
-
-        let editingSessionId = null;
-
-        function openEditModal(id) {
-            const log = (state.timeLogs || []).find(l => l.id === id);
-            if (!log) return;
-            editingSessionId = id;
-            document.getElementById('editSessionTitle').value = log.title || 'Work Session';
-
-            const endMs = parseDateToMs(log.completedAt) || Date.now();
-            const startMs = parseDateToMs(log.startedAt) || (endMs - (log.durationSeconds || 0) * 1000);
-
-            document.getElementById('editSessionStart').value = formatTimeToInputVal(startMs);
-            document.getElementById('editSessionEnd').value = formatTimeToInputVal(endMs);
-            document.getElementById('editSessionMins').value = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
-
-            document.getElementById('editSessionModal').classList.add('active');
-            if (navigator.vibrate) navigator.vibrate(8);
-        }
-
-        function onEditTimeChange() {
-            const startVal = document.getElementById('editSessionStart').value;
-            const endVal = document.getElementById('editSessionEnd').value;
-            if (startVal && endVal) {
-                const [sH, sM] = startVal.split(':').map(Number);
-                const [eH, eM] = endVal.split(':').map(Number);
-                let sMins = sH * 60 + sM;
-                let eMins = eH * 60 + eM;
-                if (eMins < sMins) eMins += 24 * 60;
-                const diff = Math.max(1, eMins - sMins);
-                document.getElementById('editSessionMins').value = diff;
-            }
-        }
-
-        function onEditMinsChange() {
-            const mins = parseInt(document.getElementById('editSessionMins').value, 10);
-            const startVal = document.getElementById('editSessionStart').value;
-            if (!isNaN(mins) && mins > 0 && startVal) {
-                const [sH, sM] = startVal.split(':').map(Number);
-                let totalMins = sH * 60 + sM + mins;
-                let eH = Math.floor(totalMins / 60) % 24;
-                let eM = totalMins % 60;
-                document.getElementById('editSessionEnd').value = `${String(eH).padStart(2,'0')}:${String(eM).padStart(2,'0')}`;
-            }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editSessionModal').classList.remove('active');
-            editingSessionId = null;
-        }
-
-        function saveEditedSession() {
-            if (!editingSessionId) return;
-            const log = (state.timeLogs || []).find(l => l.id === editingSessionId);
-            if (!log) return;
-
-            const title = document.getElementById('editSessionTitle').value.trim() || 'Work Session';
-            const startVal = document.getElementById('editSessionStart').value;
-            const endVal = document.getElementById('editSessionEnd').value;
-            const mins = Math.max(1, parseInt(document.getElementById('editSessionMins').value, 10) || 1);
-
-            const origEnd = new Date(parseDateToMs(log.completedAt) || Date.now());
-            let newStartMs = parseDateToMs(log.startedAt);
-            let newEndMs = parseDateToMs(log.completedAt);
-
-            if (startVal && endVal) {
-                const [sH, sM] = startVal.split(':').map(Number);
-                const [eH, eM] = endVal.split(':').map(Number);
-                const sD = new Date(origEnd.getFullYear(), origEnd.getMonth(), origEnd.getDate(), sH, sM);
-                let eD = new Date(origEnd.getFullYear(), origEnd.getMonth(), origEnd.getDate(), eH, eM);
-                if (eD.getTime() <= sD.getTime()) {
-                    eD = new Date(sD.getTime() + mins * 60 * 1000);
-                }
-                newStartMs = sD.getTime();
-                newEndMs = eD.getTime();
-            } else {
-                newEndMs = origEnd.getTime();
-                newStartMs = newEndMs - mins * 60 * 1000;
-            }
-
-            state.timeLogs = (state.timeLogs || []).map(l => {
-                if (l.id !== editingSessionId) return l;
-                return {
-                    ...l,
-                    title,
-                    startedAt: newStartMs,
-                    completedAt: newEndMs,
-                    durationSeconds: Math.max(60, Math.round((newEndMs - newStartMs) / 1000))
-                };
-            });
-
-            state.timerTotalSeconds = calculateTodayTargetSeconds();
-            state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-            if (state.timerIsRunning) {
-                state.timerTargetEndDate = Date.now() + (state.timerRemainingSeconds * 1000);
-            }
-
-            closeEditModal();
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
-
-        function renderTimerLogs() {
-            const list = document.getElementById('timerLogRows');
-            if (!list) return;
-
-            const summary = document.getElementById('todayLogSummary');
-            const logs = state.timeLogs || [];
-            const now = new Date();
-            const todayLogs = logs.filter(l => {
-                const ms = parseDateToMs(l.completedAt);
-                return ms && isSameDay(new Date(ms), now);
-            });
-
-            if (summary) {
-                const totalTodaySecs = todayLogs.reduce((acc, l) => acc + (l.durationSeconds || 0), 0);
-                const todayTarget = calculateTodayTargetSeconds();
-                const leftSecs = Math.max(0, todayTarget - totalTodaySecs);
-                summary.textContent = `${todayLogs.length} session${todayLogs.length === 1 ? '' : 's'} · ${formatHours(totalTodaySecs)} tracked (${leftSecs > 0 ? formatHours(leftSecs) + ' left' : 'Goal reached'})`;
-            }
-
-            // Ensure manual entry inputs have sensible defaults
-            initManualEntryDefaults();
-
-            let rowsHtml = '';
-
-            // Active in-progress row at top if timer is running
-            if (state.timerIsRunning && state.currentIntervalStart) {
-                const startMs = parseDateToMs(state.currentIntervalStart) || Date.now();
-                const elapsed = Math.max(1, Math.round((Date.now() - startMs) / 1000));
-                rowsHtml += `
-                    <div class="log-row active-running-row">
-                        <div class="log-col-start">
-                            <span class="log-time-val">${formatTime12(startMs)}</span>
-                            <span class="log-date-sub">Start</span>
-                        </div>
-                        <div class="log-col-arrow">→</div>
-                        <div class="log-col-end">
-                            <span class="log-time-val active-pulse">Tracking…</span>
-                            <span class="log-date-sub">Pause to log</span>
-                        </div>
-                        <div class="log-col-meta">
-                            <span class="session-duration-pill" style="background: rgba(255,159,10,0.2); color: var(--orange);">${formatReadableDuration(elapsed)}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (logs.length === 0 && !state.timerIsRunning) {
-                rowsHtml += `<div style="text-align: center; color: var(--grey); margin: 24px 0; font-size: 12.5px;">No time logs recorded yet.<br><span style="font-size: 11px; opacity: 0.7;">Start timer or enter times above to add a row.</span></div>`;
-            } else {
-                rowsHtml += logs.slice(0, 30).map(l => {
-                    const endMs = parseDateToMs(l.completedAt) || Date.now();
-                    const startMs = parseDateToMs(l.startedAt) || (endMs - (l.durationSeconds || 0) * 1000);
-                    return `
-                        <div class="log-row" onclick="openEditModal('${l.id}')">
-                            <div class="log-col-start">
-                                <span class="log-time-val">${formatTime12(startMs)}</span>
-                                <span class="log-date-sub">${formatRowDate(startMs)}</span>
-                            </div>
-                            <div class="log-col-arrow">→</div>
-                            <div class="log-col-end">
-                                <span class="log-time-val">${formatTime12(endMs)}</span>
-                                <span class="log-date-sub">${formatRowDate(endMs)}</span>
-                            </div>
-                            <div class="log-col-meta">
-                                <span class="session-duration-pill">${formatReadableDuration(l.durationSeconds)}</span>
-                                <button class="icon-btn" onclick="event.stopPropagation(); openEditModal('${l.id}')" title="Edit">✎</button>
-                                <button class="icon-btn" onclick="event.stopPropagation(); deleteWorkLog('${l.id}')" title="Delete">✕</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            list.innerHTML = rowsHtml;
-        }
-
-        function initManualEntryDefaults() {
-            const sInput = document.getElementById('manualStartTime');
-            const eInput = document.getElementById('manualEndTime');
-            if (sInput && eInput && !sInput.value && !eInput.value) {
-                const now = new Date();
-                const endStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                const prev = new Date(now.getTime() - 45 * 60 * 1000);
-                const startStr = `${String(prev.getHours()).padStart(2,'0')}:${String(prev.getMinutes()).padStart(2,'0')}`;
-                sInput.value = startStr;
-                eInput.value = endStr;
-            }
-        }
-
-        function addTask() {
-            const input = document.getElementById('newTaskInput');
-            const title = input.value.trim();
-            if (!title) return;
-            const newTodo = {
-                id: generateId(),
-                title,
-                isCompleted: false,
-                trackedSeconds: 0
-            };
-            state.todos = [newTodo, ...(state.todos || [])];
-            input.value = '';
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-        }
-
-        function toggleTodo(id) {
-            const t = (state.todos || []).find(x => x.id === id);
-            if (t) {
-                t.isCompleted = !t.isCompleted;
-                applyState(state, false);
-                saveCachedState(state);
-                pushStateToCloud();
-            }
-        }
-
-        function deleteTodo(id) {
-            state.todos = (state.todos || []).filter(x => x.id !== id);
-            applyState(state, false);
-            saveCachedState(state);
-            pushStateToCloud();
-        }
-
-        function saveNoteDebounced() {
-            clearTimeout(noteSaveTimeout);
-            noteSaveTimeout = setTimeout(() => {
-                const title = document.getElementById('noteTitle').value;
-                const content = document.getElementById('noteContent').value;
-                const existing = state.notes && state.notes[0];
-                if (existing) {
-                    existing.title = title;
-                    existing.content = content;
-                    existing.updatedAt = Date.now();
-                } else {
-                    state.notes = [{ id: generateId(), title, content, updatedAt: Date.now() }];
-                }
-                saveCachedState(state);
-                pushStateToCloud();
-            }, 400);
-        }
-
-        // Formatting Helpers
-        function parseDateToMs(d) {
-            if (!d) return null;
-            if (typeof d === 'number') {
-                if (d < 10000000000) {
-                    if (d < 1200000000) {
-                        return (d + 978307200) * 1000;
-                    }
-                    return d * 1000;
-                }
-                return d;
-            }
-            const parsed = new Date(d).getTime();
-            return isNaN(parsed) ? null : parsed;
-        }
-
-        function formatMMSS(secs) {
-            const c = Math.max(0, secs);
-            const h = Math.floor(c / 3600);
-            const m = Math.floor((c % 3600) / 60);
-            const s = c % 60;
-            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        }
-
-        function formatHours(seconds) {
-            if (seconds <= 0) return '0m';
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            if (h > 0 && m > 0) return `${h}h ${m}m`;
-            if (h > 0) return `${h}h`;
-            return `${m}m`;
-        }
-
-        function formatReadableDuration(seconds) {
-            if (seconds <= 0) return '0m';
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            if (h > 0 && m > 0) return `${h}h ${m}m`;
-            if (h > 0) return `${h}h`;
-            return `${m}m`;
-        }
-
-        function formatSessionDate(dateVal) {
-            const ms = parseDateToMs(dateVal);
-            if (!ms) return '';
-            const d = new Date(ms);
-            const now = new Date();
-            const isToday = d.toDateString() === now.toDateString();
-            const yesterday = new Date(now);
-            yesterday.setDate(now.getDate() - 1);
-            const isYesterday = d.toDateString() === yesterday.toDateString();
-            const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-            if (isToday) return `Today, ${timeStr}`;
-            if (isYesterday) return `Yesterday, ${timeStr}`;
-            return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
-        }
-
-        function formatTime12(dateVal) {
-            const ms = parseDateToMs(dateVal);
-            if (!ms) return '--:--';
-            const d = new Date(ms);
-            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        }
-
-        function formatTimeToInputVal(dateVal) {
-            const ms = parseDateToMs(dateVal);
-            if (!ms) return '09:00';
-            const d = new Date(ms);
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            return `${hh}:${mm}`;
-        }
-
-        function formatRowDate(ms) {
-            if (!ms) return '';
-            const d = new Date(ms);
-            const now = new Date();
-            if (d.toDateString() === now.toDateString()) return 'Today';
-            const yesterday = new Date(now);
-            yesterday.setDate(now.getDate() - 1);
-            if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-            return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        }
-
-        let lastTimerSecs = -1;
-
-        function renderTimerDisplay(rem, total, force = false) {
-            if (rem === lastTimerSecs && !force) return;
-            lastTimerSecs = rem;
-
-            document.getElementById('timerCountdown').textContent = formatMMSS(rem);
-
-            const todayTarget = calculateTodayTargetSeconds();
-            const fracRemaining = Math.min(1.0, Math.max(0.0, rem / Math.max(1, todayTarget)));
-            const circumference = 2 * Math.PI * 115;
-            const offset = circumference * (1.0 - fracRemaining);
-            document.getElementById('ringProgress').style.strokeDashoffset = offset;
-        }
-
-        // Apply State
-        function applyState(newState, fromCloud = false) {
-            if (fromCloud) {
-                // Smart conflict resolution: only adopt cloud timer state if it actually differs
-                const runningChanged = newState.timerIsRunning !== undefined && newState.timerIsRunning !== state.timerIsRunning;
-                const sessionChanged = newState.isTimerSessionActive !== undefined && newState.isTimerSessionActive !== state.isTimerSessionActive;
-                const totalChanged = newState.timerTotalSeconds !== undefined && newState.timerTotalSeconds !== state.timerTotalSeconds;
-                const logsChanged = newState.timeLogs !== undefined && JSON.stringify(newState.timeLogs) !== JSON.stringify(state.timeLogs);
-                const todosChanged = newState.todos !== undefined && JSON.stringify(newState.todos) !== JSON.stringify(state.todos);
-
-                let endChanged = false;
-                if (newState.timerTargetEndDate !== undefined) {
-                    const cloudMs = parseDateToMs(newState.timerTargetEndDate);
-                    const localMs = parseDateToMs(state.timerTargetEndDate);
-                    endChanged = Math.abs((cloudMs || 0) - (localMs || 0)) > 1500;
-                }
-
-                const nothingChanged = !runningChanged && !sessionChanged && !totalChanged && !endChanged && !logsChanged && !todosChanged;
-                if (nothingChanged) {
-                    setConnectionStatus('connected');
-                    return; // Skip re-render — no actual changes
-                }
-
-                setConnectionStatus('connected');
-            }
-
-            state = Object.assign({}, state, newState);
-            const todayTarget = calculateTodayTargetSeconds();
-            state.timerTotalSeconds = todayTarget;
-            const dailyRemaining = calculateDailyRemainingSeconds();
-            state.timerRemainingSeconds = dailyRemaining;
-            const debt = calculateDayRolloverDebt();
-
-            document.getElementById('timerDot').classList.toggle('active', !!state.timerIsRunning);
-            document.getElementById('timerDotHeader').style.display = state.timerIsRunning ? 'inline' : 'none';
-
-            // 1. Timer Render
-            const cancelBtn = document.getElementById('cancelTimerBtn');
-            const startBtn = document.getElementById('startTimerBtn');
-            const statusLabel = document.getElementById('bellEndTime');
-            const todayWorked = getTodayTrackedSeconds();
-
-            if (state.timerIsRunning) {
-                if (cancelBtn) {
-                    cancelBtn.disabled = false;
-                    cancelBtn.textContent = 'Reset';
-                }
-                if (startBtn) {
-                    startBtn.textContent = 'Pause';
-                    startBtn.className = 'circle-btn pause';
-                }
-                if (state.timerTargetEndDate) {
-                    if (statusLabel) statusLabel.textContent = `🔔 Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(dailyRemaining)} left)`;
-                } else {
-                    if (statusLabel) statusLabel.textContent = `Tracking live · ${formatHours(dailyRemaining)} left`;
-                }
-
-                renderTimerDisplay(dailyRemaining, todayTarget, false);
-            } else {
-                lastTimerSecs = -1;
-                if (cancelBtn) {
-                    cancelBtn.disabled = true;
-                    cancelBtn.textContent = 'Reset';
-                }
-                if (startBtn) {
-                    startBtn.textContent = dailyRemaining > 0 ? 'Start' : 'Done';
-                    startBtn.className = 'circle-btn start';
-                }
-                if (statusLabel) {
-                    if (dailyRemaining > 0) {
-                        const debtInfo = debt > 0 ? ` (5h + ${formatHours(debt)} rollover)` : ` of ${formatHours(todayTarget)}`;
-                        statusLabel.textContent = `Today: ${formatHours(todayWorked)} · ${formatHours(dailyRemaining)} left${debtInfo}`;
-                    } else {
-                        statusLabel.textContent = `🎉 Daily Goal Achieved! (${formatHours(todayWorked)})`;
-                    }
-                }
-                renderTimerDisplay(dailyRemaining, todayTarget, true);
-            }
-
-            // Render Logging System rows
-            renderTimerLogs();
-
-            // 2. Track Insights Render
-            renderTrackView();
-
-            // 3. Tasks Render
-            const tasksList = document.getElementById('tasksList');
-            if (state.todos && state.todos.length > 0) {
-                tasksList.innerHTML = state.todos.map(todo => `
-                    <div class="task-item">
-                        <div class="task-checkbox ${todo.isCompleted ? 'completed' : ''}" onclick="toggleTodo('${todo.id}')"></div>
-                        <span class="task-title ${todo.isCompleted ? 'completed' : ''}">${todo.title}</span>
-                        <button class="icon-btn" onclick="deleteTodo('${todo.id}')">✕</button>
-                    </div>
-                `).join('');
-            } else {
-                tasksList.innerHTML = '<div style="text-align: center; color: var(--grey); margin-top: 40px; font-size: 13px;">No Tasks</div>';
-            }
-
-            // 4. Notes Render
-            if (state.notes && state.notes.length > 0) {
-                const firstNote = state.notes[0];
-                if (document.activeElement !== document.getElementById('noteTitle') &&
-                    document.activeElement !== document.getElementById('noteContent')) {
-                    document.getElementById('noteTitle').value = firstNote.title || '';
-                    document.getElementById('noteContent').value = firstNote.content || '';
-                }
-            }
-        }
-
-        // Render Track Insights
-        function renderTrackView() {
-            const logs = state.timeLogs || [];
-            const now = new Date();
-            const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
-            
-            let todaySecs = 0;
-            let todaySessions = 0;
-            logs.forEach(l => {
-                const ms = parseDateToMs(l.completedAt);
-                if (ms && isSameDay(new Date(ms), now)) {
-                    todaySecs += l.durationSeconds || 0;
-                    todaySessions++;
-                }
-            });
-
-            const startOfWeek = new Date(now);
-            const dayIndex = (now.getDay() + 6) % 7;
-            startOfWeek.setDate(now.getDate() - dayIndex);
-            startOfWeek.setHours(0, 0, 0, 0);
-
-            const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-            const weekDays = [];
-            let weekSecs = 0;
-
-            for (let i = 0; i < 7; i++) {
-                const curDate = new Date(startOfWeek);
-                curDate.setDate(startOfWeek.getDate() + i);
-                let curDaySecs = 0;
-                logs.forEach(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    if (ms && isSameDay(new Date(ms), curDate)) {
-                        curDaySecs += l.durationSeconds || 0;
-                    }
-                });
-                weekSecs += curDaySecs;
-                weekDays.push({
-                    label: dayLabels[i],
-                    hours: curDaySecs / 3600,
-                    isToday: isSameDay(curDate, now)
-                });
-            }
-
-            let monthSecs = 0;
-            const activeDaysSet = new Set();
-            logs.forEach(l => {
-                const ms = parseDateToMs(l.completedAt);
-                if (ms) {
-                    const d = new Date(ms);
-                    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
-                        monthSecs += l.durationSeconds || 0;
-                        activeDaysSet.add(d.toDateString());
-                    }
-                }
-            });
-
-            const heroVal = document.getElementById('trackHeroVal');
-            const heroSub = document.getElementById('trackHeroSub');
-            if (currentTrackScope === 'day') {
-                heroVal.textContent = formatHours(todaySecs);
-                const dayRem = calculateDailyRemainingSeconds();
-                const debt = calculateDayRolloverDebt();
-                const rolloverTxt = debt > 0 ? ` (5h + ${formatHours(debt)} rollover)` : '';
-                heroSub.textContent = dayRem > 0 
-                    ? `${todaySessions} session${todaySessions === 1 ? '' : 's'} · ${formatHours(dayRem)} left${rolloverTxt}` 
-                    : `🎉 Daily Goal Achieved! (${formatHours(todaySecs)})`;
-            } else if (currentTrackScope === 'week') {
-                heroVal.textContent = formatHours(weekSecs);
-                const avg = (weekSecs / (7 * 3600)).toFixed(1);
-                heroSub.textContent = `Daily avg: ${avg}h/day · ${formatReadableDuration(weekSecs)} total`;
-            } else {
-                heroVal.textContent = formatHours(monthSecs);
-                heroSub.textContent = `${activeDaysSet.size} active working days this month`;
-            }
-
-            const chartBox = document.getElementById('trackChartCard');
-            if (currentTrackScope === 'week') {
-                const maxH = Math.max(4.0, ...weekDays.map(d => d.hours));
-                chartBox.innerHTML = `
-                    <div class="week-bars-container">
-                        ${weekDays.map(d => {
-                            const fillH = d.hours > 0 ? Math.max(4, Math.round((d.hours / maxH) * 52)) : 0;
-                            const valStr = d.hours > 0 ? d.hours.toFixed(1) + 'h' : '';
-                            return `
-                                <div class="day-bar-col">
-                                    <span class="day-bar-val ${d.isToday ? 'today' : ''}">${valStr}</span>
-                                    <div class="day-bar-track">
-                                        <div class="day-bar-fill ${d.isToday ? 'today' : ''}" style="height: ${fillH}px;"></div>
-                                    </div>
-                                    <span class="day-bar-label ${d.isToday ? 'today' : ''}">${d.label}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-            } else if (currentTrackScope === 'month') {
-                const weeks = [ { label: 'W1', secs: 0 }, { label: 'W2', secs: 0 }, { label: 'W3', secs: 0 }, { label: 'W4', secs: 0 } ];
-                logs.forEach(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    if (ms) {
-                        const d = new Date(ms);
-                        if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
-                            const wIdx = Math.min(3, Math.floor((d.getDate() - 1) / 7));
-                            weeks[wIdx].secs += l.durationSeconds || 0;
-                        }
-                    }
-                });
-                const maxH = Math.max(10.0, ...weeks.map(w => w.secs / 3600));
-                chartBox.innerHTML = `
-                    <div class="month-bars-container">
-                        ${weeks.map(w => {
-                            const h = w.secs / 3600;
-                            const fillH = h > 0 ? Math.max(4, Math.round((h / maxH) * 52)) : 0;
-                            const valStr = h > 0 ? h.toFixed(1) + 'h' : '';
-                            return `
-                                <div class="week-col">
-                                    <span class="day-bar-val">${valStr}</span>
-                                    <div class="week-bar-track">
-                                        <div class="week-bar-fill" style="height: ${fillH}px;"></div>
-                                    </div>
-                                    <span class="day-bar-label">${w.label}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-            } else {
-                const dayStartMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
-                const dayDurationMs = 24 * 3600 * 1000;
-                const pxPerMs = 960 / dayDurationMs; // 960px = 24 h × 40px/hr
-                const nowPx = (Date.now() - dayStartMs) * pxPerMs;
-
-                // Hour marks + labels
-                let hourMarks = '';
-                for (let h = 0; h <= 24; h++) {
-                    const x = h * 40;
-                    const label = h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`;
-                    hourMarks += `<div class="tl-hour-mark" style="left:${x}px"></div>`;
-                    if (h % 3 === 0) {
-                        hourMarks += `<span class="tl-hour-label" style="left:${x}px">${label}</span>`;
-                    }
-                }
-
-                // Completed session blocks
-                let sessionBlocks = '';
-                const todayLogs = logs.filter(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    return ms && isSameDay(new Date(ms), now);
-                });
-                todayLogs.forEach(l => {
-                    const endMs = parseDateToMs(l.completedAt);
-                    if (!endMs) return;
-                    const startMs = endMs - (l.durationSeconds || 0) * 1000;
-                    const left = Math.max(0, (startMs - dayStartMs) * pxPerMs);
-                    const width = Math.max(4, (l.durationSeconds || 0) * 1000 * pxPerMs);
-                    const mins = Math.round((l.durationSeconds || 0) / 60);
-                    sessionBlocks += `<div class="tl-session-block" style="left:${left}px;width:${width}px" title="${(l.title || 'Work Session').replace(/"/g,'&quot;')} · ${mins}m" onclick="openEditModal('${l.id}')"></div>`;
-                });
-
-                // Active session block (in-progress timer)
-                if (state.timerIsRunning && state.currentIntervalStart) {
-                    const startMs = parseDateToMs(state.currentIntervalStart) || Date.now();
-                    const elapsed = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
-                    if (elapsed > 0) {
-                        const left = Math.max(0, (startMs - dayStartMs) * pxPerMs);
-                        const width = Math.max(6, elapsed * 1000 * pxPerMs);
-                        sessionBlocks += `<div class="tl-session-block active-session" style="left:${left}px;width:${width}px" title="In progress · ${Math.round(elapsed / 60)}m"></div>`;
-                    }
-                }
-
-                // Current-time indicator
-                const nowLine = `<div class="tl-now-line" style="left:${Math.min(958, nowPx)}px"></div>`;
-
-                const nowHourStr = String(now.getHours()).padStart(2, '0');
-                const nowMinStr = String(now.getMinutes()).padStart(2, '0');
-                chartBox.innerHTML = `
-                    <div class="timeline-card-inner">
-                        <div class="timeline-header-row">
-                            <span class="timeline-title">TODAY'S TIMELINE</span>
-                            <span class="timeline-legend">${nowHourStr}:${nowMinStr}</span>
-                        </div>
-                        <div class="timeline-strip-scroll" id="tlScroll">
-                            <div class="timeline-strip">
-                                ${hourMarks}
-                                ${sessionBlocks}
-                                ${nowLine}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                // Auto-scroll so current time is visible with some left context
-                requestAnimationFrame(() => {
-                    const sc = document.getElementById('tlScroll');
-                    if (sc) sc.scrollLeft = Math.max(0, nowPx - 120);
-                });
-            }
-
-            // Task Breakdown
-            const breakdownHeader = document.getElementById('breakdownHeader');
-            const breakdownList = document.getElementById('breakdownList');
-            let scopeLogs = [];
-            if (currentTrackScope === 'day') {
-                scopeLogs = logs.filter(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    return ms && isSameDay(new Date(ms), now);
-                });
-            } else if (currentTrackScope === 'week') {
-                scopeLogs = logs.filter(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    return ms && ms >= startOfWeek.getTime();
-                });
-            } else {
-                scopeLogs = logs.filter(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    if (!ms) return false;
-                    const d = new Date(ms);
-                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-                });
-            }
-
-            const groupedTasks = {};
-            let totalScopeSecs = 0;
-            scopeLogs.forEach(l => {
-                const key = l.title || 'Work Session';
-                groupedTasks[key] = (groupedTasks[key] || 0) + (l.durationSeconds || 0);
-                totalScopeSecs += (l.durationSeconds || 0);
-            });
-
-            const taskEntries = Object.entries(groupedTasks).sort((a, b) => b[1] - a[1]);
-            if (taskEntries.length > 0) {
-                breakdownHeader.style.display = 'flex';
-                breakdownList.innerHTML = taskEntries.map(([title, secs]) => {
-                    const pct = Math.max(2, Math.round((secs / Math.max(1, totalScopeSecs)) * 100));
-                    return `
-                        <div class="breakdown-row">
-                            <div class="breakdown-labels">
-                                <span style="color: var(--white); font-weight: 500;">${title}</span>
-                                <span style="color: var(--grey); font-variant-numeric: tabular-nums;">${formatHours(secs)} (${pct}%)</span>
-                            </div>
-                            <div class="breakdown-bar-track">
-                                <div class="breakdown-bar-fill" style="width: ${pct}%;"></div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                breakdownHeader.style.display = 'none';
-                breakdownList.innerHTML = '';
-            }
-
-            // Recent Sessions
-            const sessionsList = document.getElementById('sessionsList');
-            if (logs.length > 0) {
-                sessionsList.innerHTML = logs.slice(0, 20).map(l => {
-                    const endMs = parseDateToMs(l.completedAt) || Date.now();
-                    const startMs = parseDateToMs(l.startedAt) || (endMs - (l.durationSeconds || 0) * 1000);
-                    return `
-                    <div class="session-card" onclick="openEditModal('${l.id}')" style="cursor:pointer;">
-                        <div class="session-info" style="flex:1;">
-                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
-                                <span class="log-time-val" style="font-size:13px;">${formatTime12(startMs)}</span>
-                                <span class="log-col-arrow" style="font-size:11px;">→</span>
-                                <span class="log-time-val" style="font-size:13px;">${formatTime12(endMs)}</span>
-                            </div>
-                            <span class="session-time">${formatRowDate(startMs)} · ${l.title || 'Work Session'}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="session-duration-pill">${formatReadableDuration(l.durationSeconds)}</span>
-                            <button class="icon-btn" onclick="event.stopPropagation(); openEditModal('${l.id}')">✎</button>
-                            <button class="icon-btn" onclick="event.stopPropagation(); deleteWorkLog('${l.id}')">✕</button>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-            } else {
-                sessionsList.innerHTML = '<div style="text-align: center; color: var(--grey); margin: 20px 0; font-size: 13px;">No work tracked yet</div>';
-            }
-        }
-
-        // Standalone Real-Time Tick Loop
-        setInterval(() => {
-            if (state.timerIsRunning) {
-                const rem = calculateDailyRemainingSeconds();
-                state.timerRemainingSeconds = rem;
-                if (rem <= 0) {
-                    state.timerRemainingSeconds = 0;
-                    state.timerIsRunning = false;
-                    state.isTimerSessionActive = false;
-                    state.timerTargetEndDate = null;
-
-                    playAppleChime();
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
-
-                    const nowMs = Date.now();
-                    const startMs = parseDateToMs(state.currentIntervalStart) || (nowMs - 60000);
-                    const finishedDuration = Math.max(1, Math.round((nowMs - startMs) / 1000));
-                    state.currentIntervalStart = null;
-
-                    const newLog = {
-                        id: generateId(),
-                        title: 'Work Session',
-                        startedAt: startMs,
-                        durationSeconds: finishedDuration,
-                        type: 'Timer',
-                        completedAt: nowMs
-                    };
-                    state.timeLogs = [newLog, ...(state.timeLogs || [])];
-                    saveCachedState(state);
-                    applyState(state, false);
-                    pushStateToCloud();
-                    return;
-                }
-                const todayTarget = calculateTodayTargetSeconds();
-                renderTimerDisplay(rem, todayTarget, false);
-                const statusLabel = document.getElementById('bellEndTime');
-                if (statusLabel && state.timerTargetEndDate) {
-                    statusLabel.textContent = `🔔 Goal at ${formatTime12(state.timerTargetEndDate)} (${formatHours(rem)} left)`;
-                }
-            }
-        }, 100);
-
-        // Instant Boot from Cache or Defaults
-        const cachedBoot = loadCachedState();
-        if (cachedBoot && (cachedBoot.timerTotalSeconds !== undefined || cachedBoot.timeLogs !== undefined)) {
-            state = Object.assign(state, cachedBoot);
-        }
-        // Ensure default yesterday log is present if timeLogs has no yesterday record
-        const hasOct19 = (state.timeLogs || []).some(l => {
-            const ms = parseDateToMs(l.completedAt);
-            return ms && getDayString(new Date(ms)) === '2026-10-19';
-        });
-        if (!hasOct19) {
-            state.timeLogs = [DEFAULT_YESTERDAY_LOG, ...(state.timeLogs || [])];
-        }
-        state.timerTotalSeconds = calculateTodayTargetSeconds();
-        state.timerRemainingSeconds = calculateDailyRemainingSeconds();
-        applyState(state, false);
-
-        // Initialize Cloud Sync
+        // Initial render and sync
+        renderUI();
         initCloudSync();
     </script>
 </body>
