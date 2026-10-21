@@ -321,24 +321,18 @@
             color: var(--apple-orange);
         }
 
-        .apple-circle-btn.btn-pause.disabled {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.10);
-            color: var(--text-tertiary);
-            pointer-events: none;
-            opacity: 0.5;
-        }
-
         .apple-circle-btn.btn-start {
             background-color: rgba(52, 199, 89, 0.20);
             border-color: rgba(52, 199, 89, 0.40);
             color: var(--apple-green);
         }
 
-        .apple-circle-btn.btn-start.running {
-            background-color: rgba(255, 69, 58, 0.20);
-            border-color: rgba(255, 69, 58, 0.40);
-            color: var(--apple-red);
+        .apple-circle-btn.disabled {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.10) !important;
+            color: var(--text-tertiary) !important;
+            pointer-events: none;
+            opacity: 0.35;
         }
 
         /* Apple Inset Grouped Section for History */
@@ -862,7 +856,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=12').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=13').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1127,21 +1121,27 @@
                 dialStatusText.textContent = `Goal: ${formatDuration(todayTarget)} · ${formatDuration(totalLoggedWithLive)} logged`;
             }
 
-            // Buttons State
+            // Buttons State: Left is Pause (Orange), Right is Start (Green)
             if (state.timerIsRunning) {
-                btnStart.classList.add('running');
-                btnStartText.textContent = 'Pause';
-                btnStart.onclick = handlePause;
-
+                // When timer is RUNNING:
+                // Left button (Pause) is enabled
                 btnPause.classList.remove('disabled');
                 btnPause.onclick = handlePause;
-            } else {
-                btnStart.classList.remove('running');
-                btnStartText.textContent = 'Start';
-                btnStart.onclick = handleStart;
 
+                // Right button (Start) is disabled (does NOT change to Pause)
+                btnStart.classList.add('disabled');
+                btnStartText.textContent = 'Start';
+                btnStart.onclick = null;
+            } else {
+                // When timer is STOPPED:
+                // Left button (Pause) is disabled
                 btnPause.classList.add('disabled');
                 btnPause.onclick = null;
+
+                // Right button (Start) is enabled
+                btnStart.classList.remove('disabled');
+                btnStartText.textContent = 'Start';
+                btnStart.onclick = handleStart;
             }
 
             renderHistoryList();
