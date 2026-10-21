@@ -146,10 +146,12 @@ async function createWidget(widgetFamily) {
       timer.textColor = new Color("#ffffff");
     }
 
-    // Subtitle
-    let sub = root.addText(`Goal: ${formatDuration(totalTarget)} · ${formatDuration(workedToday)} done`);
-    sub.font = Font.systemFont(10);
-    sub.textColor = new Color("#8e8e93");
+    // Progress bar
+    let pct = totalTarget > 0 ? Math.min(1.0, (totalTarget - remaining) / totalTarget) : 0;
+    let barBg = root.addStack();
+    barBg.backgroundColor = new Color("#2c2c2e");
+    barBg.cornerRadius = 2;
+    barBg.size = new Size(130, 3);
 
     return widget;
   }
@@ -205,7 +207,7 @@ async function createWidget(widgetFamily) {
     barBg.cornerRadius = 3;
     barBg.size = new Size(130, 4);
 
-    let goalSub = root.addText(`Goal: ${formatDuration(totalTarget)} · ${Math.round(pct * 100)}%`);
+    let goalSub = root.addText(`${Math.round(pct * 100)}% Completed`);
     goalSub.font = Font.systemFont(9);
     goalSub.textColor = new Color("#8e8e93");
 
@@ -271,26 +273,20 @@ async function createWidget(widgetFamily) {
   rightCol.layoutVertically();
   rightCol.size = new Size(130, 90);
 
-  let statHeader = rightCol.addText("TODAY'S GOAL");
+  let statHeader = rightCol.addText("TODAY'S PROGRESS");
   statHeader.font = Font.boldSystemFont(10);
   statHeader.textColor = new Color("#ff9f0a");
 
-  rightCol.addSpacer(4);
-
-  let targetRow = rightCol.addText(`Target: ${formatDuration(totalTarget)}`);
-  targetRow.font = Font.systemFont(11);
-  targetRow.textColor = new Color("#ffffff");
-
-  let loggedRow = rightCol.addText(`Logged: ${formatDuration(workedToday)}`);
-  loggedRow.font = Font.systemFont(11);
-  loggedRow.textColor = new Color("#8e8e93");
-
-  rightCol.addSpacer(6);
+  rightCol.addSpacer(12);
 
   let pct = totalTarget > 0 ? Math.min(1.0, (totalTarget - remaining) / totalTarget) : 0;
-  let pctText = rightCol.addText(`${Math.round(pct * 100)}% Completed`);
-  pctText.font = Font.boldSystemFont(10);
+  let pctText = rightCol.addText(`${Math.round(pct * 100)}%`);
+  pctText.font = Font.boldSystemFont(28);
   pctText.textColor = new Color("#30d158");
+
+  let pctSub = rightCol.addText("Completed");
+  pctSub.font = Font.systemFont(11);
+  pctSub.textColor = new Color("#8e8e93");
 
   return widget;
 }
