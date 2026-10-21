@@ -1143,15 +1143,25 @@
     <script>
         // Register ServiceWorker with automatic cache-busting & updates
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=7').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=8').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         if (!newWorker) return;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
+                                if (!refreshing) {
+                                    refreshing = true;
+                                    window.location.reload();
+                                }
                             }
                         });
                     });
@@ -1235,8 +1245,15 @@
             return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday (no work on sat and sun)
         }
 
+        function getLogsArray() {
+            if (typeof state !== 'undefined' && state && Array.isArray(state.timeLogs)) {
+                return state.timeLogs;
+            }
+            return [];
+        }
+
         function getDayTrackedSeconds(dayStr) {
-            return (state.timeLogs || []).filter(l => {
+            return getLogsArray().filter(l => {
                 const ms = parseDateToMs(l.completedAt);
                 if (!ms) return false;
                 return getDayString(new Date(ms)) === dayStr;
@@ -1245,12 +1262,10 @@
 
         function getTodayTrackedSeconds() {
             const now = new Date();
-            return (state.timeLogs || [])
-                .filter(l => {
-                    const ms = parseDateToMs(l.completedAt);
-                    return ms && isSameDay(new Date(ms), now);
-                })
-                .reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
+            return getLogsArray().filter(l => {
+                const ms = parseDateToMs(l.completedAt);
+                return ms && isSameDay(new Date(ms), now);
+            }).reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
         }
 
         // Rollover Calculation:
@@ -1265,7 +1280,7 @@
             let runningDebt = 3 * 3600 + 28 * 60; // 12,480s (3h 28m)
 
             // If there are explicit logs recorded on yesterday (2026-10-19), derive debt dynamically:
-            const oct19Logs = (state.timeLogs || []).filter(l => {
+            const oct19Logs = getLogsArray().filter(l => {
                 const ms = parseDateToMs(l.completedAt);
                 return ms && getDayString(new Date(ms)) === '2026-10-19';
             });
@@ -1300,7 +1315,7 @@
             const todayTarget = calculateTodayTargetSeconds();
             const todayWorked = getTodayTrackedSeconds();
             let liveElapsed = 0;
-            if (state.timerIsRunning && state.currentIntervalStart) {
+            if (typeof state !== 'undefined' && state && state.timerIsRunning && state.currentIntervalStart) {
                 const startMs = parseDateToMs(state.currentIntervalStart) || Date.now();
                 liveElapsed = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
             }
@@ -1317,11 +1332,9 @@
             type: 'Manual'
         };
 
-        const initialTarget = calculateTodayTargetSeconds();
-
         let state = {
-            timerTotalSeconds: initialTarget,
-            timerRemainingSeconds: initialTarget,
+            timerTotalSeconds: 30480,
+            timerRemainingSeconds: 30480,
             timerIsRunning: false,
             isTimerSessionActive: false,
             timerTargetEndDate: null,
@@ -1329,6 +1342,11 @@
             notes: [],
             timeLogs: [DEFAULT_YESTERDAY_LOG]
         };
+
+        // Initialize state target and remaining safely after state object exists
+        state.timerTotalSeconds = calculateTodayTargetSeconds();
+        state.timerRemainingSeconds = calculateDailyRemainingSeconds();
+
         let localHours = 5, localMins = 0, localSecs = 0;
         let noteSaveTimeout = null;
         let isUserScrollingWheel = false;
