@@ -14,26 +14,20 @@
 
     <style>
         :root {
-            --bg-color: #000000;
-            --surface-color: rgba(28, 28, 30, 0.75);
-            --surface-card: #1c1c1e;
-            --surface-elevated: #2c2c2e;
-            --surface-input: #3a3a3c;
-            --accent-orange: #ff9f0a;
-            --accent-green: #34c759;
-            --accent-red: #ff453a;
-            --accent-blue: #0a84ff;
+            --bg-black: #000000;
+            --apple-grouped-bg: #1c1c1e;
+            --apple-secondary-grouped: #2c2c2e;
+            --apple-tertiary-grouped: #3a3a3c;
+            --apple-orange: #ff9f0a;
+            --apple-green: #34c759;
+            --apple-red: #ff453a;
+            --apple-blue: #0a84ff;
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --text-tertiary: #636366;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-focus: rgba(255, 159, 10, 0.5);
-            --radius-sm: 8px;
-            --radius-md: 14px;
-            --radius-lg: 20px;
-            --radius-full: 9999px;
-            --safe-top: env(safe-area-inset-top, 20px);
-            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --apple-separator: rgba(255, 255, 255, 0.12);
+            --safe-top: env(safe-area-inset-top, 24px);
+            --safe-bottom: env(safe-area-inset-bottom, 24px);
         }
 
         * {
@@ -52,7 +46,7 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-black);
             color: var(--text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             min-height: 100vh;
@@ -61,514 +55,429 @@
             flex-direction: column;
             overflow-x: hidden;
             padding-top: var(--safe-top);
-            padding-bottom: calc(var(--safe-bottom) + 16px);
+            padding-bottom: calc(var(--safe-bottom) + 24px);
         }
 
-        /* Top Header */
+        /* Apple Navigation Bar */
         header {
-            padding: 12px 20px 8px;
+            padding: 10px 20px 4px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .brand-container {
+        .nav-title-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .brand-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+        .nav-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
             background: linear-gradient(135deg, #ff9f0a, #ff6b00);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #000;
-            box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
         }
 
-        .brand-icon svg {
-            width: 16px;
-            height: 16px;
+        .nav-icon svg {
+            width: 15px;
+            height: 15px;
         }
 
-        .brand-title {
-            font-size: 19px;
+        .nav-title {
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.4px;
         }
 
-        .header-actions {
+        .nav-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .status-pill {
+        .cloud-pill {
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
-            border-radius: var(--radius-full);
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border-subtle);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.08);
             font-size: 12px;
             font-weight: 500;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .status-dot {
-            width: 7px;
-            height: 7px;
+        .cloud-dot {
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #8e8e93;
         }
 
-        .status-dot.online {
-            background: var(--accent-green);
+        .cloud-dot.online {
+            background: var(--apple-green);
             box-shadow: 0 0 6px rgba(52, 199, 89, 0.6);
         }
 
-        .status-dot.syncing {
-            background: var(--accent-orange);
-            box-shadow: 0 0 6px rgba(255, 159, 10, 0.6);
+        .cloud-dot.syncing {
+            background: var(--apple-orange);
             animation: pulse 1s infinite;
         }
 
-        .status-dot.offline {
-            background: var(--accent-red);
+        .cloud-dot.offline {
+            background: var(--apple-red);
         }
 
-        .icon-btn {
-            background: rgba(255, 255, 255, 0.08);
+        .btn-settings-icon {
+            background: transparent;
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-secondary);
+            padding: 4px;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
-        .icon-btn:active {
-            background: rgba(255, 255, 255, 0.16);
-            transform: scale(0.96);
+        .btn-settings-icon svg {
+            width: 20px;
+            height: 20px;
         }
 
-        .icon-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Main Content Container */
+        /* Main Container */
         main {
             flex: 1;
-            padding: 10px 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            max-width: 520px;
+            gap: 22px;
+            max-width: 460px;
             width: 100%;
             margin: 0 auto;
+            padding: 10px 16px 0;
         }
 
-        /* Hero Card: Remaining Time */
-        .hero-card {
-            background: var(--surface-color);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            padding: 24px 18px 20px;
-            text-align: center;
-            position: relative;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        .badge-header {
-            display: inline-flex;
+        /* Apple Clock Timer Dial Section */
+        .timer-display-section {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: var(--radius-full);
-            background: rgba(255, 159, 10, 0.12);
-            border: 1px solid rgba(255, 159, 10, 0.25);
+            justify-content: center;
+            padding: 10px 0 6px;
+            position: relative;
+        }
+
+        .dial-container {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dial-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .dial-track {
+            fill: none;
+            stroke: #1c1c1e;
+            stroke-width: 6;
+        }
+
+        .dial-fill {
+            fill: none;
+            stroke: var(--apple-orange);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 753.98;
+            stroke-dashoffset: 753.98;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .dial-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .dial-subhead {
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: 0.8px;
             text-transform: uppercase;
-            color: var(--accent-orange);
-            margin-bottom: 16px;
-        }
-
-        /* Countdown display */
-        .countdown-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-
-        .time-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 78px;
-        }
-
-        .time-value {
-            font-size: 52px;
-            font-weight: 700;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -1px;
-            color: var(--text-primary);
-        }
-
-        .time-label {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
             color: var(--text-secondary);
-            margin-top: 8px;
-            text-transform: uppercase;
+            margin-bottom: 6px;
         }
 
-        .time-colon {
-            font-size: 38px;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            line-height: 1;
-            margin-bottom: 20px;
-            user-select: none;
-        }
-
-        /* Progress Bar */
-        .progress-track {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-            margin: 12px 0 16px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff9f0a, #34c759);
-            width: 0%;
-            border-radius: var(--radius-full);
-            transition: width 0.4s ease;
-        }
-
-        /* Stats Strip */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            border-top: 1px solid var(--border-subtle);
-            padding-top: 14px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 3px;
-        }
-
-        .stat-val {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-primary);
+        .dial-time {
+            font-size: 48px;
+            font-weight: 200;
             font-variant-numeric: tabular-nums;
+            letter-spacing: -1.5px;
+            color: var(--text-primary);
+            line-height: 1;
         }
 
-        /* Live Tracking Banner */
-        .live-banner {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: rgba(52, 199, 89, 0.12);
-            border: 1px solid rgba(52, 199, 89, 0.3);
-            border-radius: var(--radius-md);
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent-green);
-        }
-
-        .live-banner.active {
-            display: flex;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            box-shadow: 0 0 8px rgba(52, 199, 89, 0.8);
-            animation: pulse 1.2s infinite ease-in-out;
-        }
-
-        /* Action Buttons: START and PAUSE */
-        .controls-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .btn-action {
-            height: 64px;
-            border-radius: var(--radius-md);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-action:active {
-            transform: scale(0.97);
-        }
-
-        .btn-start {
-            background: #34c759;
-            color: #000000;
-            box-shadow: 0 4px 16px rgba(52, 199, 89, 0.35);
-        }
-
-        .btn-start.running {
-            background: #1c3822;
-            color: #34c759;
-            border: 1px solid rgba(52, 199, 89, 0.4);
-            box-shadow: none;
-        }
-
-        .btn-pause {
-            background: #ff9f0a;
-            color: #000000;
-            box-shadow: 0 4px 16px rgba(255, 159, 10, 0.35);
-        }
-
-        .btn-pause.disabled {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-tertiary);
-            box-shadow: none;
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .btn-action svg {
-            width: 22px;
-            height: 22px;
-        }
-
-        /* History Log Section */
-        .history-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 4px 4px 0;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-
-        .btn-add-session {
+        .dial-status-line {
             display: flex;
             align-items: center;
             gap: 5px;
-            padding: 6px 12px;
-            border-radius: var(--radius-full);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--border-subtle);
-            color: var(--accent-orange);
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dial-status-line svg {
+            width: 12px;
+            height: 12px;
+            color: var(--apple-orange);
+        }
+
+        /* Apple Clock Double-Ring Circular Action Buttons */
+        .apple-buttons-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto 6px;
+            padding: 0 10px;
+        }
+
+        .apple-circle-btn {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.1s, opacity 0.2s;
+            position: relative;
         }
 
-        .btn-add-session:active {
-            background: rgba(255, 255, 255, 0.16);
-            transform: scale(0.96);
+        .apple-circle-btn:active {
+            transform: scale(0.94);
         }
 
-        .btn-add-session svg {
+        .apple-circle-btn.btn-pause {
+            background-color: rgba(255, 159, 10, 0.20);
+            border-color: rgba(255, 159, 10, 0.40);
+            color: var(--apple-orange);
+        }
+
+        .apple-circle-btn.btn-pause.disabled {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.10);
+            color: var(--text-tertiary);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .apple-circle-btn.btn-start {
+            background-color: rgba(52, 199, 89, 0.20);
+            border-color: rgba(52, 199, 89, 0.40);
+            color: var(--apple-green);
+        }
+
+        .apple-circle-btn.btn-start.running {
+            background-color: rgba(255, 69, 58, 0.20);
+            border-color: rgba(255, 69, 58, 0.40);
+            color: var(--apple-red);
+        }
+
+        /* Apple Inset Grouped Section for History */
+        .history-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .section-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+        }
+
+        .section-header-title {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: -0.08px;
+            color: var(--text-secondary);
+        }
+
+        .btn-add-text {
+            background: transparent;
+            border: none;
+            color: var(--apple-orange);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .btn-add-text svg {
             width: 14px;
             height: 14px;
         }
 
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* Inset Group Container */
+        .inset-group {
+            background: var(--apple-grouped-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
         }
 
-        .date-group-header {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+        .group-date-label {
+            font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: var(--text-secondary);
-            padding: 8px 6px 2px;
+            padding: 10px 16px 4px;
             display: flex;
             justify-content: space-between;
         }
 
-        /* Log Entry Card */
-        .log-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
+        /* Group Row Item */
+        .apple-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            padding: 12px 16px;
+            position: relative;
+            cursor: pointer;
             transition: background 0.15s;
         }
 
-        .log-card:active {
-            background: rgba(44, 44, 46, 0.8);
+        .apple-row:active {
+            background: rgba(255, 255, 255, 0.06);
         }
 
-        .log-info {
+        .apple-row:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 54px;
+            right: 0;
+            bottom: 0;
+            height: 0.5px;
+            background: var(--apple-separator);
+        }
+
+        .row-icon-squircle {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            background: rgba(255, 159, 10, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--apple-orange);
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .row-icon-squircle svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .row-content {
+            flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            min-width: 0;
+            gap: 2px;
         }
 
-        .log-title {
-            font-size: 14px;
-            font-weight: 600;
+        .row-title {
+            font-size: 15px;
+            font-weight: 500;
             color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .log-times {
+        .row-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .row-right {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 13px;
-            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .row-badge {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--apple-orange);
             font-variant-numeric: tabular-nums;
         }
 
-        .log-times svg {
-            width: 13px;
-            height: 13px;
+        .row-chevron {
             color: var(--text-tertiary);
-            flex-shrink: 0;
-        }
-
-        .log-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
         }
 
-        .duration-badge {
-            padding: 4px 9px;
-            border-radius: var(--radius-full);
-            background: rgba(255, 159, 10, 0.12);
-            color: var(--accent-orange);
-            font-size: 13px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            border: 1px solid rgba(255, 159, 10, 0.2);
+        .row-chevron svg {
+            width: 14px;
+            height: 14px;
         }
 
-        .icon-btn-edit {
-            background: rgba(255, 255, 255, 0.08);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .icon-btn-edit:active {
-            background: rgba(255, 255, 255, 0.18);
-            color: #ffffff;
-            transform: scale(0.94);
-        }
-
-        .icon-btn-edit svg {
-            width: 15px;
-            height: 15px;
-        }
-
-        .empty-history {
+        .empty-row {
+            padding: 24px 16px;
             text-align: center;
-            padding: 28px 16px;
-            background: var(--surface-card);
-            border: 1px dashed var(--border-subtle);
-            border-radius: var(--radius-md);
             color: var(--text-secondary);
             font-size: 13px;
         }
 
-        /* Modal Overlay & Sheet */
+        /* Apple Modal Sheet */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             z-index: 1000;
             display: none;
             align-items: flex-end;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.25s ease;
+            transition: opacity 0.22s ease;
         }
 
         .modal-overlay.open {
@@ -578,14 +487,13 @@
 
         .modal-sheet {
             background: #1c1c1e;
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px 24px 0 0;
+            border-radius: 20px 20px 0 0;
             width: 100%;
-            max-width: 520px;
-            padding: 20px 20px calc(var(--safe-bottom) + 20px);
-            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+            max-width: 480px;
+            padding: 12px 18px calc(var(--safe-bottom) + 16px);
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
             transform: translateY(100%);
-            transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -594,150 +502,119 @@
             transform: translateY(0);
         }
 
-        .modal-header {
+        .sheet-handle {
+            width: 36px;
+            height: 5px;
+            background: #3a3a3c;
+            border-radius: 3px;
+            margin: 0 auto 14px;
+        }
+
+        .modal-nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
-        .modal-title {
-            font-size: 19px;
-            font-weight: 700;
-        }
-
-        .modal-close {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .form-input {
-            width: 100%;
-            height: 48px;
-            background: var(--surface-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            padding: 0 14px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            border-color: var(--accent-orange);
-        }
-
-        .time-inputs-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        /* Quick Adjustment Steppers ("Go back in time") */
-        .adjust-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .adjust-chip {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-full);
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 10px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .adjust-chip:active {
-            background: var(--accent-orange);
-            color: #000;
-            transform: scale(0.95);
-        }
-
-        .duration-preview-card {
-            background: rgba(255, 159, 10, 0.08);
-            border: 1px dashed rgba(255, 159, 10, 0.3);
-            border-radius: var(--radius-sm);
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 16px 0 20px;
-        }
-
-        .duration-preview-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .duration-preview-val {
+        .modal-nav-title {
             font-size: 17px;
-            font-weight: 700;
-            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .modal-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--apple-orange);
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .modal-nav-btn.bold {
+            font-weight: 600;
+        }
+
+        .sheet-card-group {
+            background: var(--apple-secondary-grouped);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .sheet-field-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            position: relative;
+        }
+
+        .sheet-field-row:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 0;
+            bottom: 0;
+            height: 0.5px;
+            background: var(--apple-separator);
+        }
+
+        .sheet-field-label {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .sheet-field-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 15px;
+            text-align: right;
+            outline: none;
             font-variant-numeric: tabular-nums;
         }
 
-        .modal-buttons {
+        /* Steppers */
+        .stepper-chips {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 14px 14px;
         }
 
-        .btn-modal-save {
-            height: 50px;
-            background: var(--accent-orange);
-            color: #000;
+        .stepper-chip {
+            background: rgba(255, 255, 255, 0.08);
             border: none;
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: 700;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .btn-modal-save:active {
-            opacity: 0.85;
+        .stepper-chip:active {
+            background: var(--apple-orange);
+            color: #000;
         }
 
-        .btn-modal-delete {
-            height: 44px;
+        .btn-sheet-delete {
+            width: 100%;
+            height: 46px;
             background: transparent;
-            color: var(--accent-red);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-            border-radius: var(--radius-md);
-            font-size: 14px;
-            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            color: var(--apple-red);
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-sheet-delete:active {
+            background: rgba(255, 69, 58, 0.12);
         }
 
         @keyframes pulse {
@@ -748,182 +625,150 @@
     </style>
 </head>
 <body>
-    <!-- Top Header -->
+    <!-- Top Apple Nav Bar -->
     <header>
-        <div class="brand-container">
-            <div class="brand-icon">
+        <div class="nav-title-group">
+            <div class="nav-icon">
                 <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 14h-2V8h2v8zm-1-10c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"/></svg>
             </div>
-            <span class="brand-title">FocusPulse</span>
+            <span class="nav-title">FocusPulse</span>
         </div>
 
-        <div class="header-actions">
-            <div class="status-pill" id="cloudStatusBadge" onclick="toggleSettingsModal()">
-                <div class="status-dot" id="cloudStatusDot"></div>
+        <div class="nav-actions">
+            <div class="cloud-pill" id="cloudStatusBadge" onclick="toggleSettingsModal()">
+                <div class="cloud-dot" id="cloudStatusDot"></div>
                 <span id="cloudStatusText">Syncing...</span>
             </div>
-            <button class="icon-btn" onclick="toggleSettingsModal()" title="Settings">
+            <button class="btn-settings-icon" onclick="toggleSettingsModal()" title="Settings">
                 <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </button>
         </div>
     </header>
 
-    <!-- Main View -->
+    <!-- Main Content -->
     <main>
-        <!-- Hero: Remaining Time -->
-        <section class="hero-card">
-            <div class="badge-header">Remaining Today</div>
+        <!-- Apple Clock Circular Dial Timer -->
+        <section class="timer-display-section">
+            <div class="dial-container">
+                <svg class="dial-svg" viewBox="0 0 260 260">
+                    <circle class="dial-track" cx="130" cy="130" r="120" />
+                    <circle class="dial-fill" id="dialFill" cx="130" cy="130" r="120" />
+                </svg>
 
-            <div class="countdown-container">
-                <div class="time-box">
-                    <span class="time-value" id="dispHours">08</span>
-                    <span class="time-label">HOURS</span>
-                </div>
-                <div class="time-colon">:</div>
-                <div class="time-box">
-                    <span class="time-value" id="dispMins">28</span>
-                    <span class="time-label">MINUTES</span>
-                </div>
-                <div class="time-colon">:</div>
-                <div class="time-box">
-                    <span class="time-value" id="dispSecs">00</span>
-                    <span class="time-label">SECONDS</span>
-                </div>
-            </div>
-
-            <div class="progress-track">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">Target</span>
-                    <span class="stat-val" id="statTarget">8h 28m</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Logged</span>
-                    <span class="stat-val" id="statLogged">0h 00m</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Completed</span>
-                    <span class="stat-val" id="statPct">0%</span>
+                <div class="dial-content">
+                    <span class="dial-subhead">Remaining Today</span>
+                    <span class="dial-time" id="dialTime">10:44:00</span>
+                    <div class="dial-status-line" id="dialStatusLine">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                        <span id="dialStatusText">Goal: 10h 44m</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Live Session Status Banner -->
-        <div class="live-banner" id="liveBanner">
-            <div class="live-dot"></div>
-            <span id="liveBannerText">Session in progress (00:00:00)</span>
-        </div>
-
-        <!-- The Two Main Buttons: START and PAUSE -->
-        <section class="controls-container">
-            <button class="btn-action btn-start" id="btnStart" onclick="handleStart()">
-                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
-                <span id="btnStartText">Start</span>
-            </button>
-            <button class="btn-action btn-pause disabled" id="btnPause" onclick="handlePause()">
-                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <!-- Apple Double-Ring Circular Action Buttons: Pause & Start -->
+        <section class="apple-buttons-row">
+            <button class="apple-circle-btn btn-pause disabled" id="btnPause" onclick="handlePause()">
                 <span>Pause</span>
             </button>
+            <button class="apple-circle-btn btn-start" id="btnStart" onclick="handleStart()">
+                <span id="btnStartText">Start</span>
+            </button>
         </section>
 
-        <!-- History Log Section -->
+        <!-- Session History (Apple Inset Grouped Table View) -->
         <section class="history-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">History Log</h2>
-                </div>
-                <button class="btn-add-session" onclick="openAddSessionModal()">
+            <div class="section-header-row">
+                <span class="section-header-title">Session History</span>
+                <button class="btn-add-text" onclick="openAddSessionModal()">
                     <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    <span>Add Session</span>
+                    <span>Add</span>
                 </button>
             </div>
 
-            <div class="history-list" id="historyList">
-                <!-- Dynamically populated -->
+            <div class="inset-group" id="historyGroup">
+                <!-- Grouped log entries dynamically populated -->
             </div>
         </section>
     </main>
 
-    <!-- Session Edit / Add Modal -->
+    <!-- Apple iOS Modal Sheet for Edit / Add -->
     <div class="modal-overlay" id="sessionModal">
         <div class="modal-sheet">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Edit Session</h3>
-                <button class="modal-close" onclick="closeSessionModal()">✕</button>
+            <div class="sheet-handle"></div>
+
+            <div class="modal-nav">
+                <button class="modal-nav-btn" onclick="closeSessionModal()">Cancel</button>
+                <span class="modal-nav-title" id="modalTitle">Edit Session</span>
+                <button class="modal-nav-btn bold" onclick="saveSessionModal()">Done</button>
             </div>
 
             <input type="hidden" id="editSessionId">
 
-            <div class="form-group">
-                <label class="form-label">Session Title</label>
-                <input type="text" class="form-input" id="modalSessionTitle" placeholder="Work Session">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Date</label>
-                <input type="date" class="form-input" id="modalSessionDate">
-            </div>
-
-            <div class="time-inputs-row">
-                <div class="form-group">
-                    <label class="form-label">Start Time</label>
-                    <input type="time" step="1" class="form-input" id="modalStartTime" onchange="onModalTimeInputChanged()">
+            <div class="sheet-card-group">
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">Title</span>
+                    <input type="text" class="sheet-field-input" id="modalSessionTitle" placeholder="Work Session">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">End Time</label>
-                    <input type="time" step="1" class="form-input" id="modalEndTime" onchange="onModalTimeInputChanged()">
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">Date</span>
+                    <input type="date" class="sheet-field-input" id="modalSessionDate">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Quick Adjust End Time ("Go back in time")</label>
-                <div class="adjust-chips">
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-15)">-15m</button>
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-5)">-5m</button>
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(-1)">-1m</button>
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(1)">+1m</button>
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(5)">+5m</button>
-                    <button type="button" class="adjust-chip" onclick="adjustModalEndTime(15)">+15m</button>
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">Start Time</span>
+                    <input type="time" step="1" class="sheet-field-input" id="modalStartTime" onchange="onModalTimeInputChanged()">
+                </div>
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">End Time</span>
+                    <input type="time" step="1" class="sheet-field-input" id="modalEndTime" onchange="onModalTimeInputChanged()">
+                </div>
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">Duration</span>
+                    <span class="sheet-field-input" id="modalDurationPreview" style="color: var(--apple-orange); font-weight: 600;">0m</span>
                 </div>
             </div>
 
-            <div class="duration-preview-card">
-                <span class="duration-preview-label">Calculated Duration</span>
-                <span class="duration-preview-val" id="modalDurationPreview">0h 00m 00s</span>
+            <div class="sheet-card-group">
+                <div class="sheet-field-row" style="padding-bottom: 4px;">
+                    <span class="sheet-field-label" style="font-size: 13px; color: var(--text-secondary);">Adjust End Time ("Go back in time")</span>
+                </div>
+                <div class="stepper-chips">
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(-15)">-15m</button>
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(-5)">-5m</button>
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(-1)">-1m</button>
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(1)">+1m</button>
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(5)">+5m</button>
+                    <button type="button" class="stepper-chip" onclick="adjustModalEndTime(15)">+15m</button>
+                </div>
             </div>
 
-            <div class="modal-buttons">
-                <button class="btn-modal-save" onclick="saveSessionModal()">Save Changes</button>
-                <button class="btn-modal-delete" id="btnModalDelete" onclick="deleteSessionFromModal()">Delete Session</button>
-            </div>
+            <button class="btn-sheet-delete" id="btnModalDelete" onclick="deleteSessionFromModal()">Delete Session</button>
         </div>
     </div>
 
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-sheet">
-            <div class="modal-header">
-                <h3 class="modal-title">Cloud Settings</h3>
-                <button class="modal-close" onclick="toggleSettingsModal()">✕</button>
+            <div class="sheet-handle"></div>
+
+            <div class="modal-nav">
+                <button class="modal-nav-btn" onclick="toggleSettingsModal()">Cancel</button>
+                <span class="modal-nav-title">Cloud Settings</span>
+                <button class="modal-nav-btn bold" onclick="saveFirebaseSettings()">Save</button>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Firebase Database URL</label>
-                <input type="text" class="form-input" id="inputFirebaseUrl" placeholder="https://your-app.firebaseio.com">
-            </div>
-
-            <div class="modal-buttons">
-                <button class="btn-modal-save" onclick="saveFirebaseSettings()">Save & Reconnect</button>
+            <div class="sheet-card-group">
+                <div class="sheet-field-row">
+                    <span class="sheet-field-label">Firebase URL</span>
+                    <input type="text" class="sheet-field-input" id="inputFirebaseUrl" placeholder="https://..." style="text-align: left; width: 65%;">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- JavaScript Application Logic -->
     <script>
-        // Register ServiceWorker with automatic cache-busting & updates
+        // Service Worker registration with auto-reload
         if ('serviceWorker' in navigator) {
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -933,7 +778,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=10').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=11').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -951,7 +796,6 @@
             });
         }
 
-        // Utilities
         function haptic() {
             try {
                 if (navigator.vibrate) navigator.vibrate(10);
@@ -980,11 +824,15 @@
 
         function isWeekend(d) {
             const day = d.getDay();
-            return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday (no work on sat & sun)
+            return day === 0 || day === 6; // 0 = Sun, 6 = Sat
         }
 
         function formatDisplayTime(d) {
-            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function formatTime12(d) {
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
         }
 
         function formatDuration(sec) {
@@ -1001,16 +849,12 @@
             return `${s}s`;
         }
 
-        function formatRemainingHMS(totalSec) {
+        function formatDigitalTimer(totalSec) {
             const s = Math.max(0, Math.floor(totalSec));
             const h = Math.floor(s / 3600);
             const m = Math.floor((s % 3600) / 60);
             const sec = s % 60;
-            return {
-                h: String(h).padStart(2, '0'),
-                m: String(m).padStart(2, '0'),
-                s: String(sec).padStart(2, '0')
-            };
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
         }
 
         function padZero(n) {
@@ -1031,9 +875,9 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Rollover Target & Remaining Math
+        // Rollover Target Math
         const WORK_START_DATE = '2026-10-05';
-        const BASE_WORKDAY_SECONDS = 18000; // 5 hours daily (Mon-Fri)
+        const BASE_WORKDAY_SECONDS = 18000; // 5 hours
 
         function getLogsArray() {
             if (typeof state !== 'undefined' && state && Array.isArray(state.timeLogs)) {
@@ -1062,12 +906,8 @@
             const now = new Date();
             const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
-            // Step through from Monday Oct 19, 2026:
-            // Monday Oct 19: target 5h, worked 4h 16m (15,360s) -> 44m left (2,640s)
-            // Tuesday Oct 20: target 5h + 44m debt = 5h 44m, worked 0s -> 5h 44m debt (20,640s)
-            // Wednesday Oct 21 (Today): target 5h + 5h 44m debt = 10h 44m (38,640s)
             let runningDebt = 0;
-            const cur = new Date(2026, 9, 19, 12, 0, 0);
+            const cur = new Date(2026, 9, 19, 12, 0, 0); // Monday Oct 19
 
             while (cur < todayNoon) {
                 const dayStr = getDayString(cur);
@@ -1100,19 +940,18 @@
             return Math.max(0, todayTarget - (todayWorked + liveElapsed));
         }
 
-        // Monday Oct 19 session: 4h 16m worked, leaving 44m remaining
+        // Monday Oct 19 baseline session: worked 4h 16m (leaves 44m)
         const DEFAULT_MONDAY_LOG = {
             id: 'log-20261019-session',
             title: 'Work Session',
             startedAt: new Date(2026, 9, 19, 9, 0, 0).toISOString(),
             completedAt: new Date(2026, 9, 19, 13, 16, 0).toISOString(),
-            durationSeconds: 15360, // 4h 16m -> leaves 44m
+            durationSeconds: 15360,
             type: 'Work'
         };
 
-        // Application State
-        const STORAGE_STATE_KEY = 'focuspulse_state_v10';
-        const STORAGE_CONFIG_KEY = 'focuspulse_config_v10';
+        const STORAGE_STATE_KEY = 'focuspulse_state_v11';
+        const STORAGE_CONFIG_KEY = 'focuspulse_config_v11';
 
         let config = {
             firebaseUrl: 'https://focuspulse-d6131-default-rtdb.firebaseio.com'
@@ -1135,7 +974,7 @@
             notes: []
         };
 
-        // Load local state cache
+        // Load local cache if present
         try {
             const cached = localStorage.getItem(STORAGE_STATE_KEY);
             if (cached) {
@@ -1144,26 +983,9 @@
             }
         } catch(e) {}
 
-        // Ensure baseline Monday log is present and reflects 4h 16m worked (leaving 44m)
-        const hasMon19 = (state.timeLogs || []).some(l => {
-            const ms = parseDateToMs(l.completedAt);
-            return ms && getDayString(new Date(ms)) === '2026-10-19';
-        });
-        if (!hasMon19) {
-            state.timeLogs = [DEFAULT_MONDAY_LOG, ...(state.timeLogs || [])];
-        } else {
-            // Update the Oct 19 log if it was previously set to 1h 32m
-            state.timeLogs = (state.timeLogs || []).map(l => {
-                const ms = parseDateToMs(l.completedAt);
-                if (ms && getDayString(new Date(ms)) === '2026-10-19' && l.durationSeconds === 5520) {
-                    return Object.assign({}, l, {
-                        durationSeconds: 15360,
-                        startedAt: new Date(2026, 9, 19, 9, 0, 0).toISOString(),
-                        completedAt: new Date(2026, 9, 19, 13, 16, 0).toISOString()
-                    });
-                }
-                return l;
-            });
+        // Ensure baseline Monday session exists if empty
+        if (!Array.isArray(state.timeLogs) || state.timeLogs.length === 0) {
+            state.timeLogs = [DEFAULT_MONDAY_LOG];
         }
 
         state.timerTotalSeconds = calculateTodayTargetSeconds();
@@ -1175,22 +997,19 @@
             } catch(e) {}
         }
 
-        // UI Elements
-        const dispHours = document.getElementById('dispHours');
-        const dispMins = document.getElementById('dispMins');
-        const dispSecs = document.getElementById('dispSecs');
-        const progressFill = document.getElementById('progressFill');
-        const statTarget = document.getElementById('statTarget');
-        const statLogged = document.getElementById('statLogged');
-        const statPct = document.getElementById('statPct');
-        const liveBanner = document.getElementById('liveBanner');
-        const liveBannerText = document.getElementById('liveBannerText');
+        // DOM elements
+        const dialFill = document.getElementById('dialFill');
+        const dialTime = document.getElementById('dialTime');
+        const dialStatusLine = document.getElementById('dialStatusLine');
+        const dialStatusText = document.getElementById('dialStatusText');
         const btnStart = document.getElementById('btnStart');
         const btnStartText = document.getElementById('btnStartText');
         const btnPause = document.getElementById('btnPause');
-        const historyList = document.getElementById('historyList');
+        const historyGroup = document.getElementById('historyGroup');
         const cloudStatusDot = document.getElementById('cloudStatusDot');
         const cloudStatusText = document.getElementById('cloudStatusText');
+
+        const DIAL_CIRCUMFERENCE = 753.98; // 2 * PI * 120
 
         // Render UI
         function renderUI() {
@@ -1206,56 +1025,58 @@
             const totalLoggedWithLive = todayLogged + liveElapsed;
             const remaining = Math.max(0, todayTarget - totalLoggedWithLive);
 
-            // Update remaining time digits
-            const hms = formatRemainingHMS(remaining);
-            dispHours.textContent = hms.h;
-            dispMins.textContent = hms.m;
-            dispSecs.textContent = hms.s;
+            // Digital time in Apple Clock font
+            dialTime.textContent = formatDigitalTimer(remaining);
 
-            // Stats
-            statTarget.textContent = formatDuration(todayTarget);
-            statLogged.textContent = formatDuration(totalLoggedWithLive);
-            const pct = todayTarget > 0 ? Math.min(100, Math.round((totalLoggedWithLive / todayTarget) * 100)) : 100;
-            statPct.textContent = `${pct}%`;
-            progressFill.style.width = `${pct}%`;
+            // Progress Ring
+            const progress = todayTarget > 0 ? Math.min(1.0, totalLoggedWithLive / todayTarget) : 0;
+            const offset = DIAL_CIRCUMFERENCE * (1.0 - progress);
+            dialFill.style.strokeDashoffset = offset;
 
-            // Live banner & buttons state
+            // Status Bell & End Time
+            if (state.timerIsRunning && state.timerTargetEndDate) {
+                const endMs = parseDateToMs(state.timerTargetEndDate) || (Date.now() + remaining * 1000);
+                dialStatusText.textContent = `🔔 ${formatTime12(new Date(endMs))} (+${formatDuration(liveElapsed)})`;
+            } else if (remaining === 0) {
+                dialStatusText.textContent = `🎉 Daily Goal Achieved!`;
+            } else {
+                dialStatusText.textContent = `Goal: ${formatDuration(todayTarget)} · ${formatDuration(totalLoggedWithLive)} logged`;
+            }
+
+            // Buttons State
             if (state.timerIsRunning) {
-                liveBanner.classList.add('active');
-                liveBannerText.textContent = `Tracking Active • ${formatDuration(liveElapsed)} elapsed`;
-
                 btnStart.classList.add('running');
-                btnStartText.textContent = 'Tracking...';
+                btnStartText.textContent = 'Pause';
+                btnStart.onclick = handlePause;
 
                 btnPause.classList.remove('disabled');
+                btnPause.onclick = handlePause;
             } else {
-                liveBanner.classList.remove('active');
-
                 btnStart.classList.remove('running');
                 btnStartText.textContent = 'Start';
+                btnStart.onclick = handleStart;
 
                 btnPause.classList.add('disabled');
+                btnPause.onclick = null;
             }
 
             renderHistoryList();
         }
 
-        // Render History List
+        // Render History List in Apple Inset Group
         function renderHistoryList() {
             const logs = getLogsArray();
             if (logs.length === 0) {
-                historyList.innerHTML = `<div class="empty-history">No sessions logged yet. Tap Start to track a session.</div>`;
+                historyGroup.innerHTML = `<div class="empty-row">No sessions logged yet. Tap Start to begin tracking.</div>`;
                 return;
             }
 
-            // Sort newest first
             const sorted = [...logs].sort((a, b) => {
                 const msA = parseDateToMs(a.completedAt || a.startedAt) || 0;
                 const msB = parseDateToMs(b.completedAt || b.startedAt) || 0;
                 return msB - msA;
             });
 
-            // Group by day string
             const groups = {};
             const now = new Date();
             const todayStr = getDayString(now);
@@ -1276,9 +1097,9 @@
             for (const [dayStr, grp] of Object.entries(groups)) {
                 let headerTitle = dayStr;
                 if (dayStr === todayStr) {
-                    headerTitle = `Today • ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                    headerTitle = `Today · ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
                 } else if (dayStr === yesterdayStr) {
-                    headerTitle = `Yesterday • ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                    headerTitle = `Yesterday · ${grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
                 } else {
                     headerTitle = grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                 }
@@ -1286,7 +1107,7 @@
                 const dayTotalSec = grp.items.reduce((s, it) => s + (it.durationSeconds || 0), 0);
 
                 html += `
-                    <div class="date-group-header">
+                    <div class="group-date-label">
                         <span>${headerTitle}</span>
                         <span>${formatDuration(dayTotalSec)}</span>
                     </div>
@@ -1300,34 +1121,32 @@
                     const durStr = formatDuration(log.durationSeconds || 0);
 
                     html += `
-                        <div class="log-card">
-                            <div class="log-info" onclick="openEditSessionModal('${log.id}')">
-                                <span class="log-title">${escapeHtml(log.title || 'Work Session')}</span>
-                                <div class="log-times">
-                                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>
-                                    <span>${startStr} &rarr; ${endStr}</span>
-                                </div>
+                        <div class="apple-row" onclick="openEditSessionModal('${log.id}')">
+                            <div class="row-icon-squircle">
+                                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                             </div>
-                            <div class="log-actions">
-                                <span class="duration-badge">${durStr}</span>
-                                <button class="icon-btn-edit" onclick="openEditSessionModal('${log.id}')" title="Edit Session">
-                                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                                </button>
+                            <div class="row-content">
+                                <span class="row-title">${escapeHtml(log.title || 'Work Session')}</span>
+                                <span class="row-subtitle">${startStr} – ${endStr}</span>
+                            </div>
+                            <div class="row-right">
+                                <span class="row-badge">${durStr}</span>
+                                <div class="row-chevron">
+                                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                                </div>
                             </div>
                         </div>
                     `;
                 });
             }
 
-            historyList.innerHTML = html;
+            historyGroup.innerHTML = html;
         }
 
-        // START Button Action
+        // START Action
         function handleStart() {
             haptic();
-            if (state.timerIsRunning) {
-                return; // Already running
-            }
+            if (state.timerIsRunning) return;
 
             const now = new Date();
             state.timerIsRunning = true;
@@ -1344,7 +1163,7 @@
             pushStateToCloud(false);
         }
 
-        // PAUSE Button Action
+        // PAUSE Action
         function handlePause() {
             haptic();
             if (!state.timerIsRunning) return;
@@ -1377,7 +1196,7 @@
             pushStateToCloud(true);
         }
 
-        // Ticking loop: 1 second interval for smooth timer
+        // Ticking loop: 1 second interval
         setInterval(() => {
             if (state.timerIsRunning) {
                 state.timerRemainingSeconds = calculateDailyRemainingSeconds();
@@ -1463,7 +1282,6 @@
             let endDate = new Date(y, mo - 1, d, eh || 0, em || 0, es || 0);
 
             if (endDate <= startDate) {
-                // If end is before or equal to start, assume it rolls into next day
                 endDate = new Date(endDate.getTime() + 24 * 3600 * 1000);
             }
 
@@ -1509,7 +1327,6 @@
             const completedAt = pair.endDate.toISOString();
 
             if (id) {
-                // Edit existing
                 state.timeLogs = getLogsArray().map(l => {
                     if (String(l.id) === String(id)) {
                         return Object.assign({}, l, {
@@ -1523,7 +1340,6 @@
                     return l;
                 });
             } else {
-                // Add new
                 const newLog = {
                     id: generateId(),
                     title,
@@ -1548,7 +1364,7 @@
             haptic();
             const id = editSessionId.value;
             if (!id) return;
-            if (confirm('Delete this session entry?')) {
+            if (confirm('Delete this session?')) {
                 state.timeLogs = getLogsArray().filter(l => String(l.id) !== String(id));
                 state.timerTotalSeconds = calculateTodayTargetSeconds();
                 state.timerRemainingSeconds = calculateDailyRemainingSeconds();
@@ -1589,10 +1405,9 @@
         let sseSource = null;
         let pollTimer = null;
         let pushDebounce = null;
-        let isSyncing = false;
 
         function setStatus(status, text) {
-            cloudStatusDot.className = 'status-dot ' + status;
+            cloudStatusDot.className = 'cloud-dot ' + status;
             cloudStatusText.textContent = text;
         }
 
@@ -1663,7 +1478,7 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     if (data && typeof data === 'object') {
-                        // Merge timeLogs if remote has logs
+                        // Merge without wiping
                         if (Array.isArray(data.timeLogs) && data.timeLogs.length > 0) {
                             state.timeLogs = data.timeLogs;
                         }
@@ -1672,6 +1487,9 @@
                         }
                         if (data.currentIntervalStart) {
                             state.currentIntervalStart = data.currentIntervalStart;
+                        }
+                        if (data.timerTargetEndDate) {
+                            state.timerTargetEndDate = data.timerTargetEndDate;
                         }
 
                         state.timerTotalSeconds = calculateTodayTargetSeconds();
@@ -1711,7 +1529,7 @@
                         const parsed = JSON.parse(e.data);
                         if (parsed && parsed.data) {
                             const d = parsed.data;
-                            if (Array.isArray(d.timeLogs)) {
+                            if (Array.isArray(d.timeLogs) && d.timeLogs.length > 0) {
                                 state.timeLogs = d.timeLogs;
                             }
                             if (typeof d.timerIsRunning === 'boolean') {
@@ -1719,6 +1537,9 @@
                             }
                             if (d.currentIntervalStart) {
                                 state.currentIntervalStart = d.currentIntervalStart;
+                            }
+                            if (d.timerTargetEndDate) {
+                                state.timerTargetEndDate = d.timerTargetEndDate;
                             }
                             state.timerTotalSeconds = calculateTodayTargetSeconds();
                             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
@@ -1734,7 +1555,7 @@
             } catch(e) {}
         }
 
-        // Initial render and sync
+        // Boot
         renderUI();
         initCloudSync();
     </script>
