@@ -933,7 +933,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=9').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=10').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1060,26 +1060,26 @@
 
         function calculateDayRolloverDebt() {
             const now = new Date();
-            const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-            const yesterdayStr = getDayString(yesterday);
+            const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
-            // Baseline remaining debt from yesterday: 3h 28m = 12,480s
-            // User requested: "from yesterday i have 3h 28min left"
-            let debt = 3 * 3600 + 28 * 60;
+            // Step through from Monday Oct 19, 2026:
+            // Monday Oct 19: target 5h, worked 4h 16m (15,360s) -> 44m left (2,640s)
+            // Tuesday Oct 20: target 5h + 44m debt = 5h 44m, worked 0s -> 5h 44m debt (20,640s)
+            // Wednesday Oct 21 (Today): target 5h + 5h 44m debt = 10h 44m (38,640s)
+            let runningDebt = 0;
+            const cur = new Date(2026, 9, 19, 12, 0, 0);
 
-            const yesterdayLogs = getLogsArray().filter(l => {
-                const ms = parseDateToMs(l.completedAt);
-                if (!ms) return false;
-                const dStr = getDayString(new Date(ms));
-                return dStr === yesterdayStr || dStr === '2026-10-19' || dStr === '2026-10-20';
-            });
-
-            if (yesterdayLogs.length > 0) {
-                const workedSec = yesterdayLogs.reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
-                debt = Math.max(0, BASE_WORKDAY_SECONDS - workedSec);
+            while (cur < todayNoon) {
+                const dayStr = getDayString(cur);
+                const isWe = isWeekend(cur);
+                const dayBaseTarget = isWe ? 0 : BASE_WORKDAY_SECONDS;
+                const totalTargetForDay = dayBaseTarget + runningDebt;
+                const workedOnDay = getDayTrackedSeconds(dayStr);
+                runningDebt = Math.max(0, totalTargetForDay - workedOnDay);
+                cur.setDate(cur.getDate() + 1);
             }
 
-            return debt;
+            return runningDebt;
         }
 
         function calculateTodayTargetSeconds() {
@@ -1100,19 +1100,19 @@
             return Math.max(0, todayTarget - (todayWorked + liveElapsed));
         }
 
-        // Baseline session for Oct 19 leaving 3h 28m of 5h: 1h 32m worked
-        const DEFAULT_YESTERDAY_LOG = {
+        // Monday Oct 19 session: 4h 16m worked, leaving 44m remaining
+        const DEFAULT_MONDAY_LOG = {
             id: 'log-20261019-session',
             title: 'Work Session',
             startedAt: new Date(2026, 9, 19, 9, 0, 0).toISOString(),
-            completedAt: new Date(2026, 9, 19, 10, 32, 0).toISOString(),
-            durationSeconds: 5520, // 1h 32m -> leaves 3h 28m
+            completedAt: new Date(2026, 9, 19, 13, 16, 0).toISOString(),
+            durationSeconds: 15360, // 4h 16m -> leaves 44m
             type: 'Work'
         };
 
         // Application State
-        const STORAGE_STATE_KEY = 'focuspulse_state_v9';
-        const STORAGE_CONFIG_KEY = 'focuspulse_config_v9';
+        const STORAGE_STATE_KEY = 'focuspulse_state_v10';
+        const STORAGE_CONFIG_KEY = 'focuspulse_config_v10';
 
         let config = {
             firebaseUrl: 'https://focuspulse-d6131-default-rtdb.firebaseio.com'
@@ -1124,13 +1124,13 @@
         } catch(e) {}
 
         let state = {
-            timerTotalSeconds: 30480,
-            timerRemainingSeconds: 30480,
+            timerTotalSeconds: 38640,
+            timerRemainingSeconds: 38640,
             timerIsRunning: false,
             isTimerSessionActive: false,
             timerTargetEndDate: null,
             currentIntervalStart: null,
-            timeLogs: [DEFAULT_YESTERDAY_LOG],
+            timeLogs: [DEFAULT_MONDAY_LOG],
             todos: [],
             notes: []
         };
@@ -1144,9 +1144,26 @@
             }
         } catch(e) {}
 
-        // Ensure baseline Oct 19 log exists if logs empty
-        if (!Array.isArray(state.timeLogs) || state.timeLogs.length === 0) {
-            state.timeLogs = [DEFAULT_YESTERDAY_LOG];
+        // Ensure baseline Monday log is present and reflects 4h 16m worked (leaving 44m)
+        const hasMon19 = (state.timeLogs || []).some(l => {
+            const ms = parseDateToMs(l.completedAt);
+            return ms && getDayString(new Date(ms)) === '2026-10-19';
+        });
+        if (!hasMon19) {
+            state.timeLogs = [DEFAULT_MONDAY_LOG, ...(state.timeLogs || [])];
+        } else {
+            // Update the Oct 19 log if it was previously set to 1h 32m
+            state.timeLogs = (state.timeLogs || []).map(l => {
+                const ms = parseDateToMs(l.completedAt);
+                if (ms && getDayString(new Date(ms)) === '2026-10-19' && l.durationSeconds === 5520) {
+                    return Object.assign({}, l, {
+                        durationSeconds: 15360,
+                        startedAt: new Date(2026, 9, 19, 9, 0, 0).toISOString(),
+                        completedAt: new Date(2026, 9, 19, 13, 16, 0).toISOString()
+                    });
+                }
+                return l;
+            });
         }
 
         state.timerTotalSeconds = calculateTodayTargetSeconds();
