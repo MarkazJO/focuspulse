@@ -50,13 +50,22 @@ async function createWidget(widgetFamily) {
   const isRunning = state ? !!state.timerIsRunning : false;
 
   let targetDate = null;
-  if (isRunning && state && state.timerTargetEndDate) {
-    let targetMs = Date.parse(state.timerTargetEndDate);
-    if (!isNaN(targetMs) && targetMs > Date.now()) {
-      targetDate = new Date(targetMs);
-      remaining = Math.max(0, Math.floor((targetMs - Date.now()) / 1000));
+  if (isRunning) {
+    if (state && state.timerTargetEndDate) {
+      let targetMs = Date.parse(state.timerTargetEndDate);
+      if (!isNaN(targetMs) && targetMs > Date.now()) {
+        targetDate = new Date(targetMs);
+        remaining = Math.max(0, Math.floor((targetMs - Date.now()) / 1000));
+      }
+    }
+    // Fallback: ensure timer ticks live even if timerTargetEndDate was missing
+    if (!targetDate && remaining > 0) {
+      targetDate = new Date(Date.now() + remaining * 1000);
     }
   }
+
+  // Tell iOS to reload widget as frequently as WidgetKit allows
+  widget.refreshAfterDate = new Date(Date.now() + 60 * 1000);
 
   // Today's worked seconds
   let workedToday = 0;
