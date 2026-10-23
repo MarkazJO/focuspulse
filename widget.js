@@ -72,6 +72,7 @@ async function createWidget(widgetFamily) {
   if (state && Array.isArray(state.timeLogs)) {
     const todayStr = getTodayDayString();
     workedToday = state.timeLogs.filter(l => {
+      if (l.workDate) return l.workDate === todayStr;
       if (!l.completedAt) return false;
       const ms = typeof l.completedAt === 'number' ? l.completedAt : Date.parse(l.completedAt);
       if (isNaN(ms)) return false;
