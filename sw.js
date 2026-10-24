@@ -1,4 +1,4 @@
-const CACHE_NAME = 'focuspulse-ghpages-v19';
+const CACHE_NAME = 'focuspulse-ghpages-v20';
 const ASSETS = [
     './',
     './index.html',
@@ -22,6 +22,10 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
+    // Only cache standard http/https schemes (ignore chrome-extension, etc.)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return;
+    }
     // Do not cache cloud database requests or API calls
     if (url.hostname.includes('firebaseio.com') || url.pathname.includes('/api/')) {
         return;
