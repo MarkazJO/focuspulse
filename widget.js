@@ -49,14 +49,9 @@ async function createWidget(widgetFamily) {
   const isOffDay = (day === 0 || day === 6); // 0 = Sunday, 6 = Saturday
 
   // Calculate times
-  let totalTarget = (state && typeof state.timerTotalSeconds === 'number') ? state.timerTotalSeconds : (isOffDay ? 0 : 18000);
-  let remaining = (state && typeof state.timerRemainingSeconds === 'number') ? state.timerRemainingSeconds : (isOffDay ? 0 : totalTarget);
+  let totalTarget = (state && typeof state.timerTotalSeconds === 'number') ? state.timerTotalSeconds : 0;
+  let remaining = (state && typeof state.timerRemainingSeconds === 'number') ? state.timerRemainingSeconds : totalTarget;
   const isRunning = state ? !!state.timerIsRunning : false;
-
-  if (isOffDay && !isRunning) {
-    remaining = 0;
-    totalTarget = 0;
-  }
 
   let targetDate = null;
   if (isRunning) {
@@ -96,8 +91,10 @@ async function createWidget(widgetFamily) {
     if (isRunning && targetDate) {
       let countdown = widget.addDate(targetDate);
       countdown.applyTimerStyle();
+    } else if (remaining > 0) {
+      text.text = `⏳ FocusPulse: ${formatHMS(remaining)} left`;
     } else if (isOffDay) {
-      text.text = `🏖️ FocusPulse: Off Day`;
+      text.text = `🏖️ FocusPulse: Weekend Rest`;
     } else {
       text.text = `⏳ FocusPulse: ${formatHMS(remaining)} left`;
     }
@@ -110,13 +107,13 @@ async function createWidget(widgetFamily) {
     col.layoutVertically();
     col.centerAlignContent();
 
-    let title = col.addText(isOffDay && !isRunning ? "WEEKEND" : "REMAIN");
+    let title = col.addText(isOffDay && remaining === 0 && !isRunning ? "WEEKEND" : "REMAIN");
     title.font = Font.boldSystemFont(8);
     title.textColor = new Color("#8e8e93");
 
-    let val = col.addText(isOffDay && !isRunning ? "OFF" : formatCompactHours(remaining));
+    let val = col.addText(remaining > 0 ? formatCompactHours(remaining) : (isOffDay ? "REST" : "0h 0m"));
     val.font = Font.boldSystemFont(13);
-    val.textColor = isOffDay && !isRunning ? new Color("#30d158") : new Color("#ffffff");
+    val.textColor = (isOffDay && remaining === 0) ? new Color("#30d158") : new Color("#ffffff");
 
     return widget;
   }
@@ -138,7 +135,7 @@ async function createWidget(widgetFamily) {
 
     topStack.addSpacer();
 
-    let dot = topStack.addText(isRunning ? "● RUNNING" : (isOffDay ? "🏖️ OFF DAY" : "⏸ PAUSED"));
+    let dot = topStack.addText(isRunning ? "● RUNNING" : (isOffDay ? (remaining > 0 ? "🏖️ OFF DAY" : "🏖️ REST") : "⏸ PAUSED"));
     dot.font = Font.systemFont(8);
     dot.textColor = isRunning ? new Color("#30d158") : (isOffDay ? new Color("#30d158") : new Color("#8e8e93"));
 
@@ -152,6 +149,10 @@ async function createWidget(widgetFamily) {
       timer.applyTimerStyle();
       timer.font = Font.boldSystemFont(18);
       timer.textColor = new Color("#ffffff");
+    } else if (remaining > 0) {
+      let timer = timeStack.addText(formatHMS(remaining));
+      timer.font = Font.boldSystemFont(18);
+      timer.textColor = new Color("#ffffff");
     } else if (isOffDay) {
       let timer = timeStack.addText(workedToday > 0 ? `${formatDuration(workedToday)} logged` : "Weekend Rest");
       timer.font = Font.boldSystemFont(16);
@@ -163,7 +164,7 @@ async function createWidget(widgetFamily) {
     }
 
     // Progress bar
-    let pct = isOffDay ? 1.0 : (totalTarget > 0 ? Math.min(1.0, (totalTarget - remaining) / totalTarget) : 0);
+    let pct = totalTarget > 0 ? Math.min(1.0, Math.max(0, (totalTarget - remaining) / totalTarget)) : (isOffDay ? 1.0 : 0);
     let barBg = root.addStack();
     barBg.backgroundColor = new Color("#2c2c2e");
     barBg.cornerRadius = 2;
@@ -201,7 +202,7 @@ async function createWidget(widgetFamily) {
 
     root.addSpacer();
 
-    let label = root.addText(isOffDay && !isRunning ? "TODAY'S STATUS" : "REMAINING TODAY");
+    let label = root.addText(isOffDay && remaining === 0 && !isRunning ? "TODAY'S STATUS" : "REMAINING TODAY");
     label.font = Font.systemFont(9);
     label.textColor = new Color("#8e8e93");
 
@@ -214,10 +215,14 @@ async function createWidget(widgetFamily) {
       timer.applyTimerStyle();
       timer.font = Font.systemFont(26);
       timer.textColor = new Color("#ffffff");
-    } else if (isOffDay) {
-      let timer = timeStack.addText("Off Day");
-      timer.font = Font.boldSystemFont(24);
+    } else if (remaining > 0) {
+      let timer = timeStack.addText(formatHMS(remaining));
+      timer.font = Font.systemFont(26);
       timer.textColor = new Color("#ffffff");
+    } else if (isOffDay) {
+      let timer = timeStack.addText("Weekend Rest");
+      timer.font = Font.boldSystemFont(20);
+      timer.textColor = new Color("#30d158");
     } else {
       let timer = timeStack.addText(formatHMS(remaining));
       timer.font = Font.systemFont(26);
@@ -227,7 +232,7 @@ async function createWidget(widgetFamily) {
     root.addSpacer();
 
     // Progress bar
-    let pct = isOffDay ? 1.0 : (totalTarget > 0 ? Math.min(1.0, (totalTarget - remaining) / totalTarget) : 0);
+    let pct = totalTarget > 0 ? Math.min(1.0, Math.max(0, (totalTarget - remaining) / totalTarget)) : (isOffDay ? 1.0 : 0);
     let barBg = root.addStack();
     barBg.backgroundColor = new Color("#2c2c2e");
     barBg.cornerRadius = 3;
@@ -239,7 +244,7 @@ async function createWidget(widgetFamily) {
       barFill.cornerRadius = 3;
     }
 
-    let goalSub = root.addText(isOffDay ? "Weekend Rest" : `${Math.round(pct * 100)}% Completed`);
+    let goalSub = root.addText((isOffDay && remaining === 0) ? "Weekend Rest" : `${Math.round(pct * 100)}% Completed`);
     goalSub.font = Font.systemFont(9);
     goalSub.textColor = new Color("#8e8e93");
 
@@ -266,7 +271,7 @@ async function createWidget(widgetFamily) {
 
   leftCol.addSpacer(6);
 
-  let remainLabel = leftCol.addText(isOffDay && !isRunning ? "TODAY'S STATUS" : "TODAY'S REMAINING");
+  let remainLabel = leftCol.addText(isOffDay && remaining === 0 && !isRunning ? "TODAY'S STATUS" : "TODAY'S REMAINING");
   remainLabel.font = Font.systemFont(9);
   remainLabel.textColor = new Color("#8e8e93");
 
@@ -279,10 +284,14 @@ async function createWidget(widgetFamily) {
     timer.applyTimerStyle();
     timer.font = Font.systemFont(32);
     timer.textColor = new Color("#ffffff");
-  } else if (isOffDay) {
-    let timer = timeRow.addText("Off Day");
-    timer.font = Font.boldSystemFont(30);
+  } else if (remaining > 0) {
+    let timer = timeRow.addText(formatHMS(remaining));
+    timer.font = Font.systemFont(32);
     timer.textColor = new Color("#ffffff");
+  } else if (isOffDay) {
+    let timer = timeRow.addText("Weekend Rest");
+    timer.font = Font.boldSystemFont(28);
+    timer.textColor = new Color("#30d158");
   } else {
     let timer = timeRow.addText(formatHMS(remaining));
     timer.font = Font.systemFont(32);
@@ -291,7 +300,7 @@ async function createWidget(widgetFamily) {
 
   leftCol.addSpacer(4);
 
-  let statusText = leftCol.addText(isRunning ? "● TRACKING ACTIVE" : (isOffDay ? "🏖️ WEEKEND REST" : "⏸ TIMER PAUSED"));
+  let statusText = leftCol.addText(isRunning ? "● TRACKING ACTIVE" : (isOffDay ? (remaining > 0 ? "🏖️ OFF DAY · ROLLOVER" : "🏖️ WEEKEND REST") : "⏸ TIMER PAUSED"));
   statusText.font = Font.boldSystemFont(9);
   statusText.textColor = isRunning ? new Color("#30d158") : (isOffDay ? new Color("#30d158") : new Color("#ff9f0a"));
 
@@ -309,18 +318,18 @@ async function createWidget(widgetFamily) {
   rightCol.layoutVertically();
   rightCol.size = new Size(130, 90);
 
-  let statHeader = rightCol.addText(isOffDay ? "WEEKEND STATUS" : "TODAY'S PROGRESS");
+  let statHeader = rightCol.addText((isOffDay && remaining === 0) ? "WEEKEND STATUS" : "TODAY'S PROGRESS");
   statHeader.font = Font.boldSystemFont(10);
   statHeader.textColor = new Color("#ff9f0a");
 
   rightCol.addSpacer(12);
 
-  let pct = isOffDay ? 1.0 : (totalTarget > 0 ? Math.min(1.0, (totalTarget - remaining) / totalTarget) : 0);
-  let pctText = rightCol.addText(isOffDay ? "100%" : `${Math.round(pct * 100)}%`);
+  let pct = totalTarget > 0 ? Math.min(1.0, Math.max(0, (totalTarget - remaining) / totalTarget)) : (isOffDay ? 1.0 : 0);
+  let pctText = rightCol.addText((isOffDay && remaining === 0) ? "100%" : `${Math.round(pct * 100)}%`);
   pctText.font = Font.boldSystemFont(28);
   pctText.textColor = new Color("#30d158");
 
-  let pctSub = rightCol.addText(isOffDay ? "Weekend Rest" : "Completed");
+  let pctSub = rightCol.addText((isOffDay && remaining === 0) ? "Weekend Rest" : "Completed");
   pctSub.font = Font.systemFont(11);
   pctSub.textColor = new Color("#8e8e93");
 
