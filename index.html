@@ -1004,7 +1004,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=20').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=21').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1137,7 +1137,7 @@
             const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
             let runningDebt = 0;
-            const cur = new Date(2026, 9, 19, 12, 0, 0); // Monday Oct 19
+            const cur = new Date(2026, 9, 5, 12, 0, 0); // Monday Oct 5
 
             while (cur < todayNoon) {
                 const dayStr = getDayString(cur);
