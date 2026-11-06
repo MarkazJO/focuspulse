@@ -395,6 +395,8 @@
             user-select: none;
             -webkit-user-select: none;
             transition: opacity 0.15s ease;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .group-date-label.is-dragging-boundary {
@@ -543,8 +545,12 @@
 
         /* Group Row Item */
         .apple-row {
-            display: flex;
-            align-items: center;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: 100%;
+            box-sizing: border-box;
             padding: 12px 16px;
             position: relative;
             cursor: pointer;
@@ -581,14 +587,16 @@
         .row-icon-squircle svg {
             width: 16px;
             height: 16px;
+            display: block;
         }
 
         .row-content {
-            flex: 1;
+            flex: 1 1 auto;
             min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 2px;
+            overflow: hidden;
         }
 
         .row-title {
@@ -604,6 +612,9 @@
             font-size: 13px;
             color: var(--text-secondary);
             font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .row-right {
@@ -611,6 +622,7 @@
             align-items: center;
             gap: 6px;
             flex-shrink: 0;
+            margin-left: auto;
         }
 
         .row-badge {
@@ -1004,7 +1016,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=21').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=22').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1385,9 +1397,7 @@
                             <span class="group-date-total">${formatDuration(dayTotalSec)}</span>
                             <button type="button" class="day-reorder-handle" data-day="${dayStr}" title="Reorder where day starts" aria-label="Reorder where day starts">
                                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                                    <line x1="3" y1="5.5" x2="17" y2="5.5"/>
-                                    <line x1="3" y1="10" x2="17" y2="10"/>
-                                    <line x1="3" y1="14.5" x2="17" y2="14.5"/>
+                                    <path d="M3 5.5h14M3 10h14M3 14.5h14"></path>
                                 </svg>
                             </button>
                         </div>
