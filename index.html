@@ -1001,6 +1001,25 @@
                     <input type="text" class="sheet-field-input" id="inputFirebaseUrl" placeholder="https://..." style="text-align: left; width: 65%;">
                 </div>
             </div>
+
+            <div id="rulesExpiredAlert" style="display:none; margin: 12px 0 0; padding: 14px; background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.35); border-radius: 12px; font-size: 13px; color: #ffffff;">
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--apple-red); font-size: 14px;">
+                    <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; flex-shrink: 0;"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    <span>Firebase Rules Expired (401)</span>
+                </div>
+                <p style="margin: 8px 0 0; font-size: 12px; color: #d1d1d6; line-height: 1.45;">
+                    Your Firebase Realtime Database 30-day trial rules have expired and locked database access.
+                    <br><br>
+                    <b>To fix in 20 seconds:</b>
+                    <br>1. Open <a href="https://console.firebase.google.com/project/focuspulse-d6131/database/focuspulse-d6131-default-rtdb/rules" target="_blank" style="color: var(--apple-orange); text-decoration: underline;">Firebase Console &rarr; Rules</a>
+                    <br>2. Set:
+                    <br><code style="display: block; margin: 6px 0; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 6px; font-family: monospace; font-size: 11px;">{<br>&nbsp;&nbsp;"rules": {<br>&nbsp;&nbsp;&nbsp;&nbsp;".read": true,<br>&nbsp;&nbsp;&nbsp;&nbsp;".write": true<br>&nbsp;&nbsp;}<br>}</code>
+                    3. Tap <b>Publish</b>.
+                </p>
+                <button type="button" class="btn-copy-widget" style="margin-top: 10px; width: 100%; justify-content: center;" onclick="testFirebaseConnection()">
+                    <span>Test Connection & Retry</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1016,7 +1035,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=22').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=23').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -2109,10 +2128,39 @@
         let sseSource = null;
         let pollTimer = null;
         let pushDebounce = null;
+        let isRulesExpired = false;
 
         function setStatus(status, text) {
             cloudStatusDot.className = 'cloud-dot ' + status;
             cloudStatusText.textContent = text;
+        }
+
+        function showRulesExpired(show = true) {
+            isRulesExpired = show;
+            const el = document.getElementById('rulesExpiredAlert');
+            if (el) el.style.display = show ? 'block' : 'none';
+        }
+
+        async function testFirebaseConnection() {
+            haptic();
+            const base = getCleanFirebaseUrl();
+            if (!base) return;
+            setStatus('syncing', 'Testing...');
+            try {
+                const resp = await fetch(`${base}/state.json`);
+                if (resp.ok) {
+                    showRulesExpired(false);
+                    setStatus('online', 'Synced');
+                    initCloudSync();
+                } else if (resp.status === 401 || resp.status === 403) {
+                    showRulesExpired(true);
+                    setStatus('error', 'Rules Expired');
+                } else {
+                    setStatus('offline', 'Sync Error');
+                }
+            } catch(e) {
+                setStatus('offline', 'Offline');
+            }
         }
 
         function getCleanFirebaseUrl() {
@@ -2156,7 +2204,11 @@
                         body: JSON.stringify(payload)
                     });
                     if (resp.ok) {
+                        showRulesExpired(false);
                         setStatus('online', 'Synced');
+                    } else if (resp.status === 401 || resp.status === 403) {
+                        showRulesExpired(true);
+                        setStatus('error', 'Rules Expired');
                     } else {
                         setStatus('offline', 'Sync Error');
                     }
@@ -2174,12 +2226,13 @@
 
         async function fetchInitialCloudState() {
             const base = getCleanFirebaseUrl();
-            if (!base) return;
+            if (!base) return null;
 
             setStatus('syncing', 'Connecting...');
             try {
                 const resp = await fetch(`${base}/state.json`);
                 if (resp.ok) {
+                    showRulesExpired(false);
                     const data = await resp.json();
                     if (data && typeof data === 'object') {
                         // Merge without wiping
@@ -2205,16 +2258,22 @@
                             pushStateToCloud(false);
                         }
                         setStatus('online', 'Synced');
-                        return;
+                        return true;
                     }
+                } else if (resp.status === 401 || resp.status === 403) {
+                    showRulesExpired(true);
+                    setStatus('error', 'Rules Expired');
+                    return false;
                 }
                 setStatus('online', 'Ready');
+                return true;
             } catch(e) {
                 setStatus('offline', 'Offline');
+                return null;
             }
         }
 
-        function initCloudSync() {
+        async function initCloudSync() {
             if (sseSource) {
                 sseSource.close();
                 sseSource = null;
@@ -2224,7 +2283,11 @@
                 pollTimer = null;
             }
 
-            fetchInitialCloudState();
+            const ok = await fetchInitialCloudState();
+            if (ok === false && isRulesExpired) {
+                // Rules expired: do not start SSE loop to prevent rapid reconnect attempts
+                return;
+            }
 
             const base = getCleanFirebaseUrl();
             if (!base) return;
@@ -2252,12 +2315,21 @@
                             state.timerRemainingSeconds = calculateDailyRemainingSeconds();
                             saveStateLocally();
                             renderUI();
+                            showRulesExpired(false);
                             setStatus('online', 'Synced');
                         }
                     } catch(err) {}
                 });
                 sseSource.onerror = () => {
-                    setStatus('offline', 'Reconnecting');
+                    if (isRulesExpired) {
+                        setStatus('error', 'Rules Expired');
+                        if (sseSource) {
+                            sseSource.close();
+                            sseSource = null;
+                        }
+                    } else {
+                        setStatus('offline', 'Reconnecting');
+                    }
                 };
             } catch(e) {}
         }
