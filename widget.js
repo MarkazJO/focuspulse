@@ -46,7 +46,8 @@ async function createWidget(widgetFamily) {
 
   const now = new Date();
   const day = now.getDay();
-  const isOffDay = (day === 0 || day === 6); // 0 = Sunday, 6 = Saturday
+  const todayStr = getTodayDayString();
+  const isOffDay = (day === 0 || day === 6 || todayStr === "2026-11-11" || todayStr === "2026-11-12");
 
   // Calculate times
   let totalTarget = (state && typeof state.timerTotalSeconds === 'number') ? state.timerTotalSeconds : 0;
