@@ -342,6 +342,302 @@
             gap: 6px;
         }
 
+        /* Tracking Segmented Control */
+        .tracking-view-segmented {
+            display: flex;
+            background: #1c1c1e;
+            border-radius: 9px;
+            padding: 3px;
+            gap: 3px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 2px;
+        }
+
+        .seg-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 0;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.16s ease;
+            text-align: center;
+        }
+
+        .seg-btn.active {
+            background: #2c2c2e;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Navigation Bar */
+        .track-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2px 2px 8px;
+        }
+
+        .track-nav-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #2c2c2e;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: background 0.15s ease;
+        }
+
+        .track-nav-btn:hover {
+            background: #3a3a3c;
+        }
+
+        .track-nav-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: center;
+            letter-spacing: -0.1px;
+        }
+
+        .track-today-btn {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--apple-orange);
+            background: rgba(255, 159, 10, 0.15);
+            border: none;
+            padding: 3px 7px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Scope Pills in Insights */
+        .insight-scope-row {
+            display: flex;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 7px;
+            padding: 2px;
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        .scope-pill {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .scope-pill.active {
+            background: #2c2c2e;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Hero metric & insight chips */
+        .insights-hero-box {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .insights-hero-val {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--apple-orange);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .insights-hero-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .insights-chips-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .insight-chip {
+            background: #2c2c2e;
+            border-radius: 12px;
+            padding: 3px 8px;
+            font-size: 10px;
+            font-weight: 500;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* 7-Day Chart in Web */
+        .web-bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 8px 6px;
+            margin-bottom: 10px;
+        }
+
+        .web-bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        .web-bar-val {
+            font-size: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            height: 10px;
+        }
+
+        .web-bar-track {
+            width: 100%;
+            height: 48px;
+            background: #2c2c2e;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .web-bar-fill {
+            width: 100%;
+            background: var(--apple-orange);
+            border-radius: 4px;
+            min-height: 2px;
+            transition: height 0.2s ease;
+        }
+
+        .web-bar-fill.goal-met {
+            background: #30d158 !important;
+        }
+
+        .web-bar-label {
+            font-size: 9.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .web-bar-label.is-today {
+            color: var(--apple-orange);
+            font-weight: 700;
+        }
+
+        /* Calendar Grid */
+        .cal-header-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding-bottom: 4px;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+
+        .cal-cell {
+            height: 36px;
+            border-radius: 7px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+
+        .cal-cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .cal-cell.today {
+            border-color: rgba(255, 159, 10, 0.6);
+            background: rgba(255, 159, 10, 0.08);
+        }
+
+        .cal-cell.selected {
+            background: rgba(255, 159, 10, 0.22) !important;
+            border-color: var(--apple-orange) !important;
+        }
+
+        .cal-cell-num {
+            font-size: 11px;
+            font-weight: 500;
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cal-cell.other-month .cal-cell-num {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .cal-cell.is-off .cal-cell-num {
+            color: var(--text-secondary);
+        }
+
+        .cal-cell-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            margin-top: 2px;
+        }
+
+        .cal-cell-dot.goal {
+            background: #30d158;
+        }
+
+        .cal-cell-dot.worked {
+            background: #ff9f0a;
+        }
+
+        .cal-cell-dot.off {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .cal-preview-card {
+            background: #1c1c1e;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
         .section-header-row {
             display: flex;
             align-items: center;
@@ -868,18 +1164,41 @@
             </button>
         </section>
 
-        <!-- Session History (Apple Inset Grouped Table View) -->
+        <!-- Session History & Tracking Insights (Apple Inset Grouped Table View) -->
         <section class="history-section">
-            <div class="section-header-row">
-                <span class="section-header-title">Session History</span>
-                <button class="btn-add-text" onclick="openAddSessionModal()">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    <span>Add</span>
-                </button>
+            <div class="tracking-view-segmented">
+                <button class="seg-btn active" id="segBtnSessions" onclick="setTrackingViewMode('sessions')">Sessions</button>
+                <button class="seg-btn" id="segBtnInsights" onclick="setTrackingViewMode('insights')">Insights</button>
+                <button class="seg-btn" id="segBtnCalendar" onclick="setTrackingViewMode('calendar')">Calendar</button>
             </div>
 
-            <div class="inset-group" id="historyGroup">
-                <!-- Grouped log entries dynamically populated -->
+            <!-- 1. Sessions View (Original Grouped List) -->
+            <div id="viewSessions">
+                <div class="section-header-row" style="margin-top: 6px;">
+                    <span class="section-header-title">Session History</span>
+                    <button class="btn-add-text" onclick="openAddSessionModal()">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        <span>Add</span>
+                    </button>
+                </div>
+
+                <div class="inset-group" id="historyGroup">
+                    <!-- Grouped log entries dynamically populated -->
+                </div>
+            </div>
+
+            <!-- 2. Insights View (Past Weeks, Days, Analytics) -->
+            <div id="viewInsights" style="display: none;">
+                <div class="inset-group" id="insightsGroup" style="padding: 12px 14px;">
+                    <!-- Dynamically populated insights -->
+                </div>
+            </div>
+
+            <!-- 3. Calendar View (Interactive Monthly Heatmap Grid) -->
+            <div id="viewCalendar" style="display: none;">
+                <div class="inset-group" id="calendarGroup" style="padding: 12px 14px;">
+                    <!-- Dynamically populated calendar -->
+                </div>
             </div>
         </section>
     </main>
@@ -1035,7 +1354,7 @@
                 }
             });
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=24').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=25').then(reg => {
                     reg.update();
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -1361,7 +1680,470 @@
                 btnStart.onclick = handleStart;
             }
 
-            renderHistoryList();
+            renderActiveTrackingView();
+        }
+
+        // Tracking View Modes: 'sessions' | 'insights' | 'calendar'
+        let trackingViewMode = 'sessions';
+        let insightScope = 'week'; // 'day' | 'week' | 'month'
+        let trackingNavDate = new Date();
+        let selectedCalendarDateStr = getDayString(new Date());
+
+        function setTrackingViewMode(mode) {
+            trackingViewMode = mode;
+            haptic();
+            const btnS = document.getElementById('segBtnSessions');
+            const btnI = document.getElementById('segBtnInsights');
+            const btnC = document.getElementById('segBtnCalendar');
+            if (btnS) btnS.classList.toggle('active', mode === 'sessions');
+            if (btnI) btnI.classList.toggle('active', mode === 'insights');
+            if (btnC) btnC.classList.toggle('active', mode === 'calendar');
+
+            const viewS = document.getElementById('viewSessions');
+            const viewI = document.getElementById('viewInsights');
+            const viewC = document.getElementById('viewCalendar');
+            if (viewS) viewS.style.display = mode === 'sessions' ? 'block' : 'none';
+            if (viewI) viewI.style.display = mode === 'insights' ? 'block' : 'none';
+            if (viewC) viewC.style.display = mode === 'calendar' ? 'block' : 'none';
+
+            renderActiveTrackingView();
+        }
+
+        function renderActiveTrackingView() {
+            if (trackingViewMode === 'sessions') {
+                renderHistoryList();
+            } else if (trackingViewMode === 'insights') {
+                renderTrackingInsights();
+            } else if (trackingViewMode === 'calendar') {
+                renderTrackingCalendar();
+            }
+        }
+
+        function navigateTrackingDate(delta) {
+            haptic();
+            if (trackingViewMode === 'insights') {
+                if (insightScope === 'day') {
+                    trackingNavDate.setDate(trackingNavDate.getDate() + delta);
+                } else if (insightScope === 'week') {
+                    trackingNavDate.setDate(trackingNavDate.getDate() + (delta * 7));
+                } else if (insightScope === 'month') {
+                    trackingNavDate.setMonth(trackingNavDate.getMonth() + delta);
+                }
+            } else if (trackingViewMode === 'calendar') {
+                trackingNavDate.setMonth(trackingNavDate.getMonth() + delta);
+            }
+            renderActiveTrackingView();
+        }
+
+        function resetTrackingDate() {
+            haptic();
+            trackingNavDate = new Date();
+            selectedCalendarDateStr = getDayString(new Date());
+            renderActiveTrackingView();
+        }
+
+        function setInsightScope(scope) {
+            haptic();
+            insightScope = scope;
+            renderTrackingInsights();
+        }
+
+        function selectCalendarDate(dateStr) {
+            haptic();
+            selectedCalendarDateStr = dateStr;
+            renderTrackingCalendar();
+        }
+
+        function inspectDayFromCalendar(dateStr) {
+            haptic();
+            const [y, m, d] = dateStr.split('-').map(Number);
+            trackingNavDate = new Date(y, m - 1, d, 12, 0, 0);
+            insightScope = 'day';
+            setTrackingViewMode('insights');
+        }
+
+        function isTrackingCurrentPeriod() {
+            const now = new Date();
+            if (trackingViewMode === 'insights') {
+                if (insightScope === 'day') {
+                    return getDayString(trackingNavDate) === getDayString(now);
+                } else if (insightScope === 'week') {
+                    const startNow = getWeekInterval(now).start;
+                    const startNav = getWeekInterval(trackingNavDate).start;
+                    return getDayString(startNow) === getDayString(startNav);
+                } else if (insightScope === 'month') {
+                    return trackingNavDate.getFullYear() === now.getFullYear() && trackingNavDate.getMonth() === now.getMonth();
+                }
+            } else if (trackingViewMode === 'calendar') {
+                return trackingNavDate.getFullYear() === now.getFullYear() && trackingNavDate.getMonth() === now.getMonth();
+            }
+            return true;
+        }
+
+        function getWeekInterval(d) {
+            const cur = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+            const day = cur.getDay();
+            const diff = (day === 0 ? -6 : 1) - day; // Monday as start
+            const start = new Date(cur);
+            start.setDate(cur.getDate() + diff);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            return { start, end };
+        }
+
+        function getTrackingPeriodTitle() {
+            const now = new Date();
+            const todayStr = getDayString(now);
+            const yesterdayDate = new Date(now);
+            yesterdayDate.setDate(now.getDate() - 1);
+            const yesterdayStr = getDayString(yesterdayDate);
+
+            if (trackingViewMode === 'insights') {
+                if (insightScope === 'day') {
+                    const navStr = getDayString(trackingNavDate);
+                    if (navStr === todayStr) {
+                        return `Today · ${trackingNavDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                    } else if (navStr === yesterdayStr) {
+                        return `Yesterday · ${trackingNavDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`;
+                    } else {
+                        return trackingNavDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                    }
+                } else if (insightScope === 'week') {
+                    const { start, end } = getWeekInterval(trackingNavDate);
+                    const isThisWeek = getDayString(getWeekInterval(now).start) === getDayString(start);
+                    const prefix = isThisWeek ? 'This Week · ' : '';
+                    const m1 = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                    const m2 = end.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                    return `${prefix}${m1} – ${m2}`;
+                } else if (insightScope === 'month') {
+                    const isThisMonth = trackingNavDate.getFullYear() === now.getFullYear() && trackingNavDate.getMonth() === now.getMonth();
+                    const prefix = isThisMonth ? 'This Month · ' : '';
+                    return `${prefix}${trackingNavDate.toLocaleDateString([], { month: 'long', year: 'numeric' })}`;
+                }
+            } else if (trackingViewMode === 'calendar') {
+                const isThisMonth = trackingNavDate.getFullYear() === now.getFullYear() && trackingNavDate.getMonth() === now.getMonth();
+                const prefix = isThisMonth ? 'This Month · ' : '';
+                return `${prefix}${trackingNavDate.toLocaleDateString([], { month: 'long', year: 'numeric' })}`;
+            }
+            return '';
+        }
+
+        function getLogsForPeriod(scope, anchorDate) {
+            const logs = getLogsArray();
+            if (scope === 'day') {
+                const dayStr = getDayString(anchorDate);
+                return logs.filter(l => getLogWorkDate(l) === dayStr);
+            } else if (scope === 'week') {
+                const { start, end } = getWeekInterval(anchorDate);
+                const sStr = getDayString(start);
+                const eStr = getDayString(end);
+                return logs.filter(l => {
+                    const d = getLogWorkDate(l);
+                    return d && d >= sStr && d <= eStr;
+                });
+            } else if (scope === 'month') {
+                const y = anchorDate.getFullYear();
+                const m = String(anchorDate.getMonth() + 1).padStart(2, '0');
+                const prefix = `${y}-${m}-`;
+                return logs.filter(l => {
+                    const d = getLogWorkDate(l);
+                    return d && d.startsWith(prefix);
+                });
+            }
+            return logs;
+        }
+
+        function renderTrackingInsights() {
+            const container = document.getElementById('insightsGroup');
+            if (!container) return;
+
+            const isCurrent = isTrackingCurrentPeriod();
+            const title = getTrackingPeriodTitle();
+            const periodLogs = getLogsForPeriod(insightScope, trackingNavDate);
+
+            // Calculate metrics
+            let totalSeconds = periodLogs.reduce((sum, l) => sum + (l.durationSeconds || 0), 0);
+            const now = new Date();
+            let liveElapsed = 0;
+            if (state.timerIsRunning && state.currentIntervalStart) {
+                const sMs = parseDateToMs(state.currentIntervalStart) || Date.now();
+                liveElapsed = Math.max(0, Math.floor((Date.now() - sMs) / 1000));
+            }
+            if (insightScope === 'day' && getDayString(trackingNavDate) === getDayString(now)) {
+                totalSeconds += liveElapsed;
+            } else if (insightScope === 'week') {
+                const { start, end } = getWeekInterval(trackingNavDate);
+                if (now >= start && now <= end) totalSeconds += liveElapsed;
+            } else if (insightScope === 'month') {
+                if (now.getFullYear() === trackingNavDate.getFullYear() && now.getMonth() === trackingNavDate.getMonth()) {
+                    totalSeconds += liveElapsed;
+                }
+            }
+
+            const sessionsCount = periodLogs.length;
+            const avgSessionMinutes = sessionsCount > 0 ? Math.round((totalSeconds / sessionsCount) / 60) : 0;
+
+            let html = `
+                <div class="insight-scope-row">
+                    <button type="button" class="scope-pill ${insightScope === 'day' ? 'active' : ''}" onclick="setInsightScope('day')">Day</button>
+                    <button type="button" class="scope-pill ${insightScope === 'week' ? 'active' : ''}" onclick="setInsightScope('week')">Week</button>
+                    <button type="button" class="scope-pill ${insightScope === 'month' ? 'active' : ''}" onclick="setInsightScope('month')">Month</button>
+                </div>
+
+                <div class="track-nav-bar">
+                    <button type="button" class="track-nav-btn" onclick="navigateTrackingDate(-1)" aria-label="Previous">‹</button>
+                    <span class="track-nav-title">${title}</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        ${!isCurrent ? `<button type="button" class="track-today-btn" onclick="resetTrackingDate()">Today</button>` : ''}
+                        <button type="button" class="track-nav-btn" onclick="navigateTrackingDate(1)" aria-label="Next">›</button>
+                    </div>
+                </div>
+
+                <div class="insights-hero-box">
+                    <div class="insights-hero-val">${(totalSeconds / 3600).toFixed(1)}h</div>
+                    <div class="insights-hero-sub">tracked ${insightScope} focus</div>
+                </div>
+            `;
+
+            if (insightScope === 'day') {
+                const isOff = isDayOff(trackingNavDate);
+                const met = totalSeconds >= 18000;
+                html += `
+                    <div class="insights-chips-row">
+                        <div class="insight-chip">⏱️ ${sessionsCount} Sessions</div>
+                        <div class="insight-chip" style="color: ${met ? '#30d158' : (isOff ? '#8e8e93' : '#ff9f0a')}">
+                            ${met ? '🎯 5h Goal Met ✓' : (isOff ? '🏖️ Off-Day' : `${((18000 - totalSeconds)/3600).toFixed(1)}h Left`)}
+                        </div>
+                        <div class="insight-chip">⚡ Avg ~${avgSessionMinutes}m/sess</div>
+                    </div>
+                `;
+            } else if (insightScope === 'week') {
+                const { start } = getWeekInterval(trackingNavDate);
+                let workdaysMet = 0;
+                let activeDays = 0;
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(start);
+                    d.setDate(start.getDate() + i);
+                    const s = getDayTrackedSeconds(getDayString(d));
+                    if (s > 0) activeDays++;
+                    if (!isDayOff(d) && s >= 18000) workdaysMet++;
+                }
+                const dailyAvg = activeDays > 0 ? (totalSeconds / activeDays / 3600).toFixed(1) : '0.0';
+
+                html += `
+                    <div class="insights-chips-row">
+                        <div class="insight-chip">📊 Avg ${dailyAvg}h / day</div>
+                        <div class="insight-chip" style="color: ${workdaysMet >= 5 ? '#30d158' : '#ffffff'}">🎯 ${workdaysMet}/5 Met</div>
+                        <div class="insight-chip">⏱️ ${sessionsCount} Sessions</div>
+                    </div>
+
+                    <div class="web-bar-chart">
+                `;
+
+                const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                let maxDaySec = 18000;
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(start);
+                    d.setDate(start.getDate() + i);
+                    const s = getDayTrackedSeconds(getDayString(d));
+                    if (s > maxDaySec) maxDaySec = s;
+                }
+
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(start);
+                    d.setDate(start.getDate() + i);
+                    const dStr = getDayString(d);
+                    const s = getDayTrackedSeconds(dStr);
+                    const hrs = (s / 3600).toFixed(1);
+                    const pct = Math.min(100, Math.max(s > 0 ? 8 : 0, Math.round((s / maxDaySec) * 100)));
+                    const isToday = (dStr === getDayString(now));
+                    const isMet = (s >= 18000);
+
+                    html += `
+                        <div class="web-bar-col" onclick="inspectDayFromCalendar('${dStr}')" title="${dStr}: ${hrs}h">
+                            <span class="web-bar-val">${s > 0 ? hrs : ''}</span>
+                            <div class="web-bar-track">
+                                <div class="web-bar-fill ${isMet ? 'goal-met' : ''}" style="height: ${pct}%;"></div>
+                            </div>
+                            <span class="web-bar-label ${isToday ? 'is-today' : ''}">${dayLabels[i]}</span>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    </div>
+                `;
+            } else if (insightScope === 'month') {
+                const y = trackingNavDate.getFullYear();
+                const m = trackingNavDate.getMonth();
+                const daysInMonth = new Date(y, m + 1, 0).getDate();
+                let activeDays = 0;
+                let metDays = 0;
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const d = new Date(y, m, day, 12, 0, 0);
+                    const s = getDayTrackedSeconds(getDayString(d));
+                    if (s > 0) activeDays++;
+                    if (!isDayOff(d) && s >= 18000) metDays++;
+                }
+                const dailyAvg = activeDays > 0 ? (totalSeconds / activeDays / 3600).toFixed(1) : '0.0';
+
+                html += `
+                    <div class="insights-chips-row">
+                        <div class="insight-chip">📊 Avg ${dailyAvg}h / day</div>
+                        <div class="insight-chip">🎯 ${metDays} Days Met</div>
+                        <div class="insight-chip">🗓️ ${activeDays} Active Days</div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin: 10px 0 6px; letter-spacing: 0.5px;">
+                    ${insightScope === 'day' ? 'Sessions' : 'Period Sessions'} (${periodLogs.length})
+                </div>
+            `;
+
+            if (periodLogs.length === 0) {
+                html += `<div style="text-align: center; font-size: 12px; color: var(--text-secondary); padding: 16px 0;">No sessions recorded for this ${insightScope}.</div>`;
+            } else {
+                periodLogs.sort((a, b) => {
+                    const msA = parseDateToMs(a.completedAt || a.startedAt) || 0;
+                    const msB = parseDateToMs(b.completedAt || b.startedAt) || 0;
+                    return msB - msA;
+                }).slice(0, 20).forEach(log => {
+                    const startMs = parseDateToMs(log.startedAt);
+                    const endMs = parseDateToMs(log.completedAt);
+                    const startStr = startMs ? formatDisplayTime(new Date(startMs)) : '—';
+                    const endStr = endMs ? formatDisplayTime(new Date(endMs)) : '—';
+                    const durStr = formatDuration(log.durationSeconds || 0);
+                    const logDate = getLogWorkDate(log) || '';
+
+                    html += `
+                        <div class="apple-row" onclick="openEditSessionModal('${log.id}')" style="cursor: pointer;">
+                            <div class="row-icon-squircle">
+                                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            </div>
+                            <div class="row-content">
+                                <span class="row-title">${escapeHtml(log.title || 'Work Session')}</span>
+                                <span class="row-subtitle">${insightScope !== 'day' ? logDate + ' · ' : ''}${startStr} – ${endStr}</span>
+                            </div>
+                            <div class="row-right">
+                                <span class="row-badge">${durStr}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderTrackingCalendar() {
+            const container = document.getElementById('calendarGroup');
+            if (!container) return;
+
+            const now = new Date();
+            const y = trackingNavDate.getFullYear();
+            const m = trackingNavDate.getMonth();
+            const monthTitle = trackingNavDate.toLocaleDateString([], { month: 'long', year: 'numeric' });
+            const isThisMonth = (y === now.getFullYear() && m === now.getMonth());
+
+            const firstDate = new Date(y, m, 1, 12, 0, 0);
+            const firstWeekday = firstDate.getDay();
+            const leadingBlanks = (firstWeekday === 0 ? 6 : firstWeekday - 1);
+
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+            let html = `
+                <div class="track-nav-bar">
+                    <button type="button" class="track-nav-btn" onclick="navigateTrackingDate(-1)" aria-label="Previous Month">‹</button>
+                    <span class="track-nav-title">${monthTitle}</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        ${!isThisMonth ? `<button type="button" class="track-today-btn" onclick="resetTrackingDate()">Today</button>` : ''}
+                        <button type="button" class="track-nav-btn" onclick="navigateTrackingDate(1)" aria-label="Next Month">›</button>
+                    </div>
+                </div>
+
+                <div class="cal-header-row">
+                    <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div style="color: var(--apple-orange)">S</div><div style="color: var(--apple-orange)">S</div>
+                </div>
+
+                <div class="cal-grid">
+            `;
+
+            for (let i = leadingBlanks - 1; i >= 0; i--) {
+                const dayNum = daysInPrevMonth - i;
+                const prevM = m === 0 ? 11 : m - 1;
+                const prevY = m === 0 ? y - 1 : y;
+                const dStr = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                html += `
+                    <div class="cal-cell other-month" onclick="selectCalendarDate('${dStr}')">
+                        <span class="cal-cell-num">${dayNum}</span>
+                    </div>
+                `;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const curDate = new Date(y, m, day, 12, 0, 0);
+                const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = (dStr === getDayString(now));
+                const isSelected = (dStr === selectedCalendarDateStr);
+                const s = getDayTrackedSeconds(dStr);
+                const isOff = isDayOff(curDate);
+
+                let dotClass = '';
+                if (s >= 18000) dotClass = 'goal';
+                else if (s > 0) dotClass = 'worked';
+                else if (isOff) dotClass = 'off';
+
+                html += `
+                    <div class="cal-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isOff ? 'is-off' : ''}" onclick="selectCalendarDate('${dStr}')">
+                        <span class="cal-cell-num">${day}</span>
+                        ${dotClass ? `<div class="cal-cell-dot ${dotClass}"></div>` : '<div class="cal-cell-dot" style="background: transparent;"></div>'}
+                    </div>
+                `;
+            }
+
+            const totalCells = leadingBlanks + daysInMonth;
+            const remainder = totalCells % 7;
+            if (remainder !== 0) {
+                const trailing = 7 - remainder;
+                const nextM = m === 11 ? 0 : m + 1;
+                const nextY = m === 11 ? y + 1 : y;
+                for (let i = 1; i <= trailing; i++) {
+                    const dStr = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    html += `
+                        <div class="cal-cell other-month" onclick="selectCalendarDate('${dStr}')">
+                            <span class="cal-cell-num">${i}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            html += `</div>`;
+
+            const [sy, sm, sd] = selectedCalendarDateStr.split('-').map(Number);
+            const selDateObj = new Date(sy, sm - 1, sd, 12, 0, 0);
+            const selSecs = getDayTrackedSeconds(selectedCalendarDateStr);
+            const isSelOff = isDayOff(selDateObj);
+            const dateLabel = selDateObj.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            const selHours = (selSecs / 3600).toFixed(1);
+
+            html += `
+                <div class="cal-preview-card">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #ffffff;">${dateLabel}</div>
+                        <div style="font-size: 11px; margin-top: 2px; color: ${selSecs >= 18000 ? '#30d158' : (selSecs > 0 ? '#ff9f0a' : 'var(--text-secondary)')}">
+                            ${selSecs > 0 ? `${selHours}h tracked ${selSecs >= 18000 ? '· Goal Met ✓' : ''}` : (isSelOff ? '🏖️ Approved Off-Day / Rest' : 'No sessions logged')}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add-text" style="font-size: 12px;" onclick="inspectDayFromCalendar('${selectedCalendarDateStr}')">
+                        <span>Inspect Day &rarr;</span>
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
         // Render History List in Apple Inset Group
